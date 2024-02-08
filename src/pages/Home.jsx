@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
-import { getMovieList, searchMovie, topRatedMovie, nowPlayingMovie } from "../../services/api";
-import Navbar from "../Navbar";
-import Slider from "../../components/detail/Slider";
+import { getMovieList, nowPlayingMovie, topRatedMovie, searchMovie } from "../services/api";
+import NavBar from "../components/Navbar";
+import Slider from "../components/Slider";
 import { Card } from "react-bootstrap";
 import { IoIosArrowUp } from "react-icons/io";
 import { Link } from "react-router-dom";
@@ -76,7 +76,7 @@ const Home = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-black text-white">
       <div className="mb-2 w-full">
-        <Navbar onSearch={search} />
+        <NavBar onSearch={search} />
       </div>
       <div className="mb-10" ref={nowPlayingRef}>
         {searchResults.length > 0 ? (

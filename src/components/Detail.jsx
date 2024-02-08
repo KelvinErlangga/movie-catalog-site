@@ -1,7 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getMovieDetails } from "../../services/api";
-import NavBar from "../../pages/Navbar";
+import { getMovieDetails } from "../services/api";
+import NavBar from "./Navbar";
 
 const Detail = () => {
   const [movieDetail, setMovieDetail] = useState();
