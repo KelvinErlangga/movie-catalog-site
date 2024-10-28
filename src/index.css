@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-    font-family: 'Poppins', sans-serif;
+.form-control {
+    @apply transition-all duration-300 ease-in-out transform;
+    width: 150px;
   }
+  
+  .form-control:hover {
+    width: 300px;
+  }
+  
