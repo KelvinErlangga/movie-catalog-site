@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
-const MovieCarousel = ({ movies, baseImgUrl }) => {
+const MovieCarousel = ({ movies }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
+    if (!movies || movies.length === 0) return;
+
     const interval = setInterval(() => {
       setCurrentIndex((prevIndex) => 
         prevIndex === movies.length - 1 ? 0 : prevIndex + 1
@@ -12,7 +14,7 @@ const MovieCarousel = ({ movies, baseImgUrl }) => {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [movies.length]);
+  }, [movies]);
 
   const goToPrevious = () => {
     setCurrentIndex(currentIndex === 0 ? movies.length - 1 : currentIndex - 1);
@@ -27,85 +29,109 @@ const MovieCarousel = ({ movies, baseImgUrl }) => {
   }
 
   const currentMovie = movies[currentIndex];
+  const backdropUrl = "https://image.tmdb.org/t/p/original";
 
   return (
-    <div className="relative w-full h-96 md:h-[500px] overflow-hidden bg-gray-900">
+    <div className="relative w-full h-[55vh] md:h-[85vh] overflow-hidden bg-black group">
+      
       {/* Background Image */}
       <div className="absolute inset-0">
         <img
-          src={`${baseImgUrl}/${currentMovie.backdrop_path}`}
+          src={`${backdropUrl}/${currentMovie.backdrop_path}`}
           alt={currentMovie.title}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover object-top transition-transform duration-1000 ease-in-out group-hover:scale-105"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
+        
+        {/* PERBAIKAN GRADASI DI SINI */}
+        {/* 1. Gradasi Bawah-ke-Atas: Menggunakan 'from-black' untuk transisi mulus ke section bawah,
+             dan 'via-black/40' agar gradasinya lebih halus dan panjang. */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+        
+        {/* 2. Gradasi Kiri-ke-Kanan: Menggunakan 'from-black/90' agar teks terbaca jelas,
+             tanpa memberikan rona kebiruan. */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/30 to-transparent" />
       </div>
 
-      {/* Content */}
+      {/* Konten Text */}
       <div className="relative h-full flex items-center">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-          <div className="max-w-2xl">
-            <Link to={`/detail/${currentMovie.id}`} className="no-underline">
-              <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 hover:text-blue-400 transition-colors">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full mt-16 md:mt-0">
+          <div className="max-w-3xl animate-in slide-in-from-left duration-700 fade-in">
+            
+            <Link to={`/detail/${currentMovie.id}`} className="no-underline block group/title">
+              <h1 className="text-3xl md:text-6xl font-extrabold text-white mb-4 leading-tight drop-shadow-lg group-hover/title:text-blue-400 transition-colors">
                 {currentMovie.title}
               </h1>
             </Link>
             
-            <div className="flex items-center space-x-4 text-gray-300 mb-4">
-              <span className="text-sm md:text-base">{currentMovie.release_date}</span>
-              <span className="flex items-center">
-                <span className="text-yellow-500 mr-1">★</span>
-                <span className="text-sm md:text-base">{currentMovie.vote_average}</span>
+            <div className="flex items-center space-x-4 text-gray-200 mb-6 font-medium text-sm md:text-lg drop-shadow-md">
+              <span className="bg-white/10 px-2 py-1 rounded border border-white/20">
+                {currentMovie.release_date?.split('-')[0]}
+              </span>
+              <span className="flex items-center text-yellow-400 font-bold">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 mr-1">
+                  <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clipRule="evenodd" />
+                </svg>
+                {currentMovie.vote_average?.toFixed(1)}
               </span>
             </div>
 
-            <p className="text-gray-300 text-sm md:text-base line-clamp-3 mb-6">
-              {currentMovie.overview || "Description not available"}
+            <p className="text-gray-300 text-sm md:text-lg line-clamp-3 md:line-clamp-4 mb-8 leading-relaxed max-w-xl drop-shadow-md">
+              {currentMovie.overview || "Description not available for this movie."}
             </p>
 
-            <Link 
-              to={`/detail/${currentMovie.id}`}
-              className="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors no-underline"
-            >
-              View Details
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="ml-2 h-5 w-5">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
+            <div className="flex space-x-4">
+              <Link 
+                to={`/detail/${currentMovie.id}`}
+                className="inline-flex items-center px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-blue-600/40 no-underline"
+              >
+                <span>Watch Trailer</span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="ml-2 w-5 h-5">
+                  <path fillRule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z" clipRule="evenodd" />
+                </svg>
+              </Link>
+              
+              <Link 
+                to={`/detail/${currentMovie.id}`}
+                className="inline-flex items-center px-8 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white font-semibold rounded-xl transition-all duration-300 border border-white/20 hover:border-white/40 no-underline"
+              >
+                More Details
+              </Link>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Navigation Controls */}
+      {/* Tombol Navigasi */}
       <button
         onClick={goToPrevious}
-        className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
+        className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-black/30 hover:bg-blue-600 text-white/70 hover:text-white rounded-full transition-all backdrop-blur-sm border border-white/10 group-hover:bg-black/50"
         aria-label="Previous slide"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="h-6 w-6">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
         </svg>
       </button>
 
       <button
         onClick={goToNext}
-        className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
+        className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-black/30 hover:bg-blue-600 text-white/70 hover:text-white rounded-full transition-all backdrop-blur-sm border border-white/10 group-hover:bg-black/50"
         aria-label="Next slide"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="h-6 w-6">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
         </svg>
       </button>
 
-      {/* Slide Indicators */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
+      {/* Indikator */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-2 z-20">
         {movies.map((_, index) => (
           <button
             key={index}
             onClick={() => setCurrentIndex(index)}
-            className={`w-2 h-2 rounded-full transition-colors ${
+            className={`h-1.5 rounded-full transition-all duration-300 ${
               index === currentIndex 
-                ? 'bg-blue-600 w-8' 
-                : 'bg-gray-400 hover:bg-gray-300'
+                ? 'bg-blue-500 w-8' 
+                : 'bg-white/30 w-2 hover:bg-white/50'
             }`}
             aria-label={`Go to slide ${index + 1}`}
           />

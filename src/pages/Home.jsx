@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { getMovieList, nowPlayingMovie, topRatedMovie, searchMovie } from "../services/api";
+import { getMovieList, nowPlayingMovie, topRatedMovie, searchMovie, getMoviesByGenre, getMoviesByYear, getMoviesByGenreAndYear, getMoviesByCountry, getMoviesByMultipleFilters } from "../services/api";
 import NavBar from "../components/Navbar";
 import MovieCarousel from "../components/Carousel";
 import MovieList from "../components/MovieList";
@@ -11,7 +11,13 @@ const Home = () => {
   const [popularMovies, setPopularMovies] = useState([]);
   const [topRatedMovies, setTopRatedMovies] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
+  const [filteredMovies, setFilteredMovies] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filterLoading, setFilterLoading] = useState(false);
+  const [activeGenre, setActiveGenre] = useState(null);
+  const [activeYear, setActiveYear] = useState(null);
+  const [activeCountry, setActiveCountry] = useState(null);
+  const [currentView, setCurrentView] = useState('home'); // 'home', 'search', 'filter'
   const baseImgUrl = process.env.REACT_APP_BASEIMGURL;
   const nowPlayingRef = useRef(null);
 
@@ -49,12 +55,109 @@ const Home = () => {
       try {
         const query = await searchMovie(q);
         setSearchResults(query.results);
+        setCurrentView('search');
+        setActiveGenre(null);
+        setActiveYear(null);
+        setActiveCountry(null);
       } catch (error) {
         console.error("Search error:", error);
       }
     } else {
       setSearchResults([]);
+      setCurrentView('home');
     }
+  };
+
+  const handleGenreFilter = async (genre) => {
+    setFilterLoading(true);
+    setActiveGenre(genre);
+    setCurrentView('filter');
+    
+    try {
+      let results;
+      if (genre && activeYear && activeCountry) {
+        results = await getMoviesByMultipleFilters(genre.id, activeYear, activeCountry.iso_3166_1);
+      } else if (genre && activeYear) {
+        results = await getMoviesByGenreAndYear(genre.id, activeYear);
+      } else if (genre && activeCountry) {
+        results = await getMoviesByMultipleFilters(genre.id, null, activeCountry.iso_3166_1);
+      } else if (genre) {
+        results = await getMoviesByGenre(genre.id);
+      } else {
+        setCurrentView('home');
+        results = [];
+      }
+      setFilteredMovies(results);
+    } catch (error) {
+      console.error("Error filtering by genre:", error);
+      setFilteredMovies([]);
+    } finally {
+      setFilterLoading(false);
+    }
+  };
+
+  const handleYearFilter = async (year) => {
+    setFilterLoading(true);
+    setActiveYear(year);
+    setCurrentView('filter');
+    
+    try {
+      let results;
+      if (year && activeGenre && activeCountry) {
+        results = await getMoviesByMultipleFilters(activeGenre.id, year, activeCountry.iso_3166_1);
+      } else if (year && activeGenre) {
+        results = await getMoviesByGenreAndYear(activeGenre.id, year);
+      } else if (year && activeCountry) {
+        results = await getMoviesByMultipleFilters(null, year, activeCountry.iso_3166_1);
+      } else if (year) {
+        results = await getMoviesByYear(year);
+      } else {
+        setCurrentView('home');
+        results = [];
+      }
+      setFilteredMovies(results);
+    } catch (error) {
+      console.error("Error filtering by year:", error);
+      setFilteredMovies([]);
+    } finally {
+      setFilterLoading(false);
+    }
+  };
+
+  const handleCountryFilter = async (country) => {
+    setFilterLoading(true);
+    setActiveCountry(country);
+    setCurrentView('filter');
+    
+    try {
+      let results;
+      if (country && activeGenre && activeYear) {
+        results = await getMoviesByMultipleFilters(activeGenre.id, activeYear, country.iso_3166_1);
+      } else if (country && activeGenre) {
+        results = await getMoviesByMultipleFilters(activeGenre.id, null, country.iso_3166_1);
+      } else if (country && activeYear) {
+        results = await getMoviesByMultipleFilters(null, activeYear, country.iso_3166_1);
+      } else if (country) {
+        results = await getMoviesByCountry(country.iso_3166_1);
+      } else {
+        setCurrentView('home');
+        results = [];
+      }
+      setFilteredMovies(results);
+    } catch (error) {
+      console.error("Error filtering by country:", error);
+      setFilteredMovies([]);
+    } finally {
+      setFilterLoading(false);
+    }
+  };
+
+  const clearFilters = () => {
+    setActiveGenre(null);
+    setActiveYear(null);
+    setActiveCountry(null);
+    setFilteredMovies([]);
+    setCurrentView('home');
   };
 
   const scrollToSection = (sectionId) => {
@@ -62,6 +165,25 @@ const Home = () => {
     if (element) {
       element.scrollIntoView({ behavior: "smooth" });
     }
+  };
+
+  const getFilterTitle = () => {
+    if (activeGenre && activeYear && activeCountry) {
+      return `${activeGenre.name} Movies - ${activeYear} (${activeCountry.english_name})`;
+    } else if (activeGenre && activeYear) {
+      return `${activeGenre.name} Movies - ${activeYear}`;
+    } else if (activeGenre && activeCountry) {
+      return `${activeGenre.name} Movies (${activeCountry.english_name})`;
+    } else if (activeYear && activeCountry) {
+      return `Movies from ${activeYear} (${activeCountry.english_name})`;
+    } else if (activeGenre) {
+      return `${activeGenre.name} Movies`;
+    } else if (activeYear) {
+      return `Movies from ${activeYear}`;
+    } else if (activeCountry) {
+      return `Movies from ${activeCountry.english_name}`;
+    }
+    return "";
   };
 
   if (loading) {
@@ -77,13 +199,53 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <NavBar onSearch={search} />
+      <NavBar 
+        onSearch={search} 
+        onGenreFilter={handleGenreFilter} 
+        onYearFilter={handleYearFilter}
+        onCountryFilter={handleCountryFilter}
+      />
       
       <div className="relative">
-        {searchResults.length > 0 ? (
+        {currentView === 'search' && searchResults.length > 0 ? (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <h2 className="text-2xl font-bold mb-6">Search Results</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold">Search Results</h2>
+              <button
+                onClick={() => {
+                  setSearchResults([]);
+                  setCurrentView('home');
+                }}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                Clear Search
+              </button>
+            </div>
             <MovieList movies={searchResults} />
+          </div>
+        ) : currentView === 'filter' && (activeGenre || activeYear || activeCountry) ? (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold">{getFilterTitle()}</h2>
+              <button
+                onClick={clearFilters}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                Clear Filters
+              </button>
+            </div>
+            {filterLoading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p>Loading filtered movies...</p>
+              </div>
+            ) : filteredMovies.length > 0 ? (
+              <MovieList movies={filteredMovies} />
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-gray-400">No movies found for this filter combination.</p>
+              </div>
+            )}
           </div>
         ) : (
           <>

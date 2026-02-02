@@ -1,10 +1,22 @@
 import React, { useState, useEffect } from "react";
+import { getMovieGenres, getCountries } from "../services/api";
 
-export default function NavBar({ onSearch }) {
+export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountryFilter }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isGenreDropdownOpen, setIsGenreDropdownOpen] = useState(false);
+  const [isYearDropdownOpen, setIsYearDropdownOpen] = useState(false);
+  const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
+  const [countries, setCountries] = useState([]);
+  const [selectedCountry, setSelectedCountry] = useState(null);
+  const [genres, setGenres] = useState([]);
+  const [selectedGenre, setSelectedGenre] = useState(null);
+  const [selectedYear, setSelectedYear] = useState(null);
+
+  // Generate years from 2024 back to 1970
+  const years = Array.from({ length: 55 }, (_, i) => 2024 - i);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -15,6 +27,22 @@ export default function NavBar({ onSearch }) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [genreList, countryList] = await Promise.all([
+          getMovieGenres(),
+          Promise.resolve(getCountries())
+        ]);
+        setGenres(genreList);
+        setCountries(countryList);
+      } catch (error) {
+        console.error("Error loading data:", error);
+      }
+    };
+    loadData();
+  }, []);
+
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
   };
@@ -22,6 +50,33 @@ export default function NavBar({ onSearch }) {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     onSearch(searchQuery);
+  };
+
+  const handleGenreSelect = (genre) => {
+    setSelectedGenre(genre);
+    setIsGenreDropdownOpen(false);
+    onGenreFilter(genre);
+  };
+
+  const handleYearSelect = (year) => {
+    setSelectedYear(year);
+    setIsYearDropdownOpen(false);
+    onYearFilter(year);
+  };
+
+  const handleCountrySelect = (country) => {
+    setSelectedCountry(country);
+    setIsCountryDropdownOpen(false);
+    onCountryFilter(country);
+  };
+
+  const clearFilters = () => {
+    setSelectedGenre(null);
+    setSelectedYear(null);
+    setSelectedCountry(null);
+    onGenreFilter(null);
+    onYearFilter(null);
+    onCountryFilter(null);
   };
 
   return (
@@ -45,25 +100,159 @@ export default function NavBar({ onSearch }) {
             </a>
           </div>
 
-          {/* Enhanced Desktop Navigation */}
-          <div className="hidden lg:block">
-            <div className="flex items-center space-x-8">
-              {[
-                { name: "Now Playing", href: "#now_playing" },
-                { name: "Popular", href: "#popular" },
-                { name: "Top Rated", href: "#top_rated" }
-              ].map((item, index) => (
-                <a 
-                  key={item.name}
-                  href={item.href} 
-                  className="relative text-gray-300 hover:text-white font-medium text-base transition-all duration-300 hover:scale-105 no-underline group"
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  <span className="relative z-10">{item.name}</span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300"></div>
-                </a>
-              ))}
+          {/* Enhanced Desktop Navigation with Filters */}
+          <div className="hidden lg:flex items-center space-x-3">
+            {/* Genre Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setIsGenreDropdownOpen(!isGenreDropdownOpen)}
+                className="relative text-gray-300 hover:text-white font-medium text-base transition-all duration-300 hover:scale-105 no-underline group px-3 py-2 rounded-lg hover:bg-gray-800/50"
+              >
+                <span className="flex items-center">
+                  Genre
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="ml-1 h-4 w-4">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </span>
+                {selectedGenre && (
+                  <span className="ml-2 text-xs px-2 py-1 bg-blue-600/30 text-blue-300 rounded-full">
+                    {selectedGenre.name}
+                  </span>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300"></div>
+              </button>
+              
+              {isGenreDropdownOpen && (
+                <div className="absolute top-full left-0 mt-2 w-64 bg-gray-800/95 backdrop-blur-xl border border-gray-700/50 rounded-xl shadow-2xl animate-in slide-in-from-top duration-200">
+                  <div className="max-h-80 overflow-y-auto p-2">
+                    <div className="sticky top-0 bg-gray-800/95 backdrop-blur-xl pb-2 mb-2 border-b border-gray-700/50">
+                      <button
+                        onClick={clearFilters}
+                        className="text-xs text-gray-400 hover:text-white transition-colors"
+                      >
+                        Clear All Filters
+                      </button>
+                    </div>
+                    {genres.map((genre) => (
+                      <button
+                        key={genre.id}
+                        onClick={() => handleGenreSelect(genre)}
+                        className="w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all duration-200 no-underline text-sm"
+                      >
+                        {genre.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
+
+            {/* Year Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setIsYearDropdownOpen(!isYearDropdownOpen)}
+                className="relative text-gray-300 hover:text-white font-medium text-base transition-all duration-300 hover:scale-105 no-underline group px-3 py-2 rounded-lg hover:bg-gray-800/50"
+              >
+                <span className="flex items-center">
+                  Year
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="ml-1 h-4 w-4">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </span>
+                {selectedYear && (
+                  <span className="ml-2 text-xs px-2 py-1 bg-purple-600/30 text-purple-300 rounded-full">
+                    {selectedYear}
+                  </span>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300"></div>
+              </button>
+              
+              {isYearDropdownOpen && (
+                <div className="absolute top-full left-0 mt-2 w-32 bg-gray-800/95 backdrop-blur-xl border border-gray-700/50 rounded-xl shadow-2xl animate-in slide-in-from-top duration-200">
+                  <div className="max-h-80 overflow-y-auto p-2">
+                    <div className="sticky top-0 bg-gray-800/95 backdrop-blur-xl pb-2 mb-2 border-b border-gray-700/50">
+                      <button
+                        onClick={clearFilters}
+                        className="text-xs text-gray-400 hover:text-white transition-colors"
+                      >
+                        Clear All
+                      </button>
+                    </div>
+                    {years.map((year) => (
+                      <button
+                        key={year}
+                        onClick={() => handleYearSelect(year)}
+                        className="w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all duration-200 no-underline text-sm"
+                      >
+                        {year}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Country Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
+                className="relative text-gray-300 hover:text-white font-medium text-base transition-all duration-300 hover:scale-105 no-underline group px-3 py-2 rounded-lg hover:bg-gray-800/50"
+              >
+                <span className="flex items-center">
+                  Country
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="ml-1 h-4 w-4">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </span>
+                {selectedCountry && (
+                  <span className="ml-2 text-xs px-2 py-1 bg-green-600/30 text-green-300 rounded-full">
+                    {selectedCountry.english_name}
+                  </span>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300"></div>
+              </button>
+              
+              {isCountryDropdownOpen && (
+                <div className="absolute top-full left-0 mt-2 w-48 bg-gray-800/95 backdrop-blur-xl border border-gray-700/50 rounded-xl shadow-2xl animate-in slide-in-from-top duration-200">
+                  <div className="max-h-80 overflow-y-auto p-2">
+                    <div className="sticky top-0 bg-gray-800/95 backdrop-blur-xl pb-2 mb-2 border-b border-gray-700/50">
+                      <button
+                        onClick={clearFilters}
+                        className="text-xs text-gray-400 hover:text-white transition-colors"
+                      >
+                        Clear All
+                      </button>
+                    </div>
+                    {countries.map((country) => (
+                      <button
+                        key={country.iso_3166_1}
+                        onClick={() => handleCountrySelect(country)}
+                        className="w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all duration-200 no-underline text-sm"
+                      >
+                        {country.english_name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Original Navigation Links */}
+            {[
+              { name: "Now Playing", href: "#now_playing" },
+              { name: "Popular", href: "#popular" },
+              { name: "Top Rated", href: "#top_rated" }
+            ].map((item, index) => (
+              <a 
+                key={item.name}
+                href={item.href} 
+                className="relative text-gray-300 hover:text-white font-medium text-xs transition-all duration-300 hover:scale-105 no-underline group"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <span className="relative z-10">{item.name}</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300"></div>
+              </a>
+            ))}
           </div>
 
           {/* Enhanced Search Bar */}
@@ -79,7 +268,7 @@ export default function NavBar({ onSearch }) {
                   <input
                     type="text"
                     placeholder="Discover movies..."
-                    className={`relative w-80 px-5 py-2.5 pr-12 bg-gray-800/60 border rounded-xl text-white placeholder-gray-500 focus:outline-none transition-all duration-500 text-sm font-light backdrop-blur-sm ${
+                    className={`relative w-64 px-4 py-2 pr-10 bg-gray-800/60 border rounded-xl text-white placeholder-gray-500 focus:outline-none transition-all duration-500 text-sm font-light backdrop-blur-sm ${
                       isSearchFocused 
                         ? 'border-blue-500/50 bg-gray-800/80 shadow-xl shadow-blue-500/20' 
                         : 'border-gray-700/50 hover:border-gray-600'
@@ -128,6 +317,94 @@ export default function NavBar({ onSearch }) {
         {isMenuOpen && (
           <div className="lg:hidden border-t border-gray-800/50 backdrop-blur-xl animate-in slide-in-from-top duration-300">
             <div className="px-4 py-6 space-y-3">
+              {/* Mobile Genre Filter */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsGenreDropdownOpen(!isGenreDropdownOpen)}
+                  className="w-full text-left text-gray-300 hover:text-white font-medium text-base py-2 px-3 rounded-lg hover:bg-gray-800/50 transition-all duration-300 no-underline group"
+                >
+                  <span className="flex items-center justify-between">
+                    Genre
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-4 w-4">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </span>
+                </button>
+                
+                {isGenreDropdownOpen && (
+                  <div className="mt-2 bg-gray-800/95 backdrop-blur-xl border border-gray-700/50 rounded-xl p-2 max-h-60 overflow-y-auto">
+                    {genres.map((genre) => (
+                      <button
+                        key={genre.id}
+                        onClick={() => handleGenreSelect(genre)}
+                        className="w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all duration-200 no-underline text-sm"
+                      >
+                        {genre.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Mobile Year Filter */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsYearDropdownOpen(!isYearDropdownOpen)}
+                  className="w-full text-left text-gray-300 hover:text-white font-medium text-base py-2 px-3 rounded-lg hover:bg-gray-800/50 transition-all duration-300 no-underline group"
+                >
+                  <span className="flex items-center justify-between">
+                    Year
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-4 w-4">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </span>
+                </button>
+                
+                {isYearDropdownOpen && (
+                  <div className="mt-2 bg-gray-800/95 backdrop-blur-xl border border-gray-700/50 rounded-xl p-2 max-h-60 overflow-y-auto">
+                    {years.map((year) => (
+                      <button
+                        key={year}
+                        onClick={() => handleYearSelect(year)}
+                        className="w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all duration-200 no-underline text-sm"
+                      >
+                        {year}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Mobile Country Filter */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
+                  className="w-full text-left text-gray-300 hover:text-white font-medium text-base py-2 px-3 rounded-lg hover:bg-gray-800/50 transition-all duration-300 no-underline group"
+                >
+                  <span className="flex items-center justify-between">
+                    Country
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-4 w-4">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </span>
+                </button>
+                
+                {isCountryDropdownOpen && (
+                  <div className="mt-2 bg-gray-800/95 backdrop-blur-xl border border-gray-700/50 rounded-xl p-2 max-h-60 overflow-y-auto">
+                    {countries.map((country) => (
+                      <button
+                        key={country.iso_3166_1}
+                        onClick={() => handleCountrySelect(country)}
+                        className="w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all duration-200 no-underline text-sm"
+                      >
+                        {country.english_name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Original Navigation Links */}
               {[
                 { name: "Now Playing", href: "#now_playing" },
                 { name: "Popular", href: "#popular" },
