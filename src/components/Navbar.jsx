@@ -1,28 +1,39 @@
 import React, { useState, useEffect } from "react";
 import { getMovieGenres, getCountries } from "../services/api";
 
-export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountryFilter }) {
+// Terima props activeGenre, activeYear, activeCountry
+export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountryFilter, onReset, activeGenre, activeYear, activeCountry }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  
   const [isGenreDropdownOpen, setIsGenreDropdownOpen] = useState(false);
   const [isYearDropdownOpen, setIsYearDropdownOpen] = useState(false);
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
+  
   const [countries, setCountries] = useState([]);
-  const [selectedCountry, setSelectedCountry] = useState(null);
   const [genres, setGenres] = useState([]);
+  
+  // STATE LOKAL INI SEKARANG AKAN DISINKRONISASI DENGAN PROPS
+  const [selectedCountry, setSelectedCountry] = useState(null);
   const [selectedGenre, setSelectedGenre] = useState(null);
   const [selectedYear, setSelectedYear] = useState(null);
 
-  // Generate years from 2024 back to 1970
   const years = Array.from({ length: 55 }, (_, i) => 2024 - i);
+
+  // --- SINKRONISASI UI DENGAN PROPS DARI HOME ---
+  // Ini penting agar saat "Back", tulisan "Country" berubah jadi "Indonesia" lagi
+  useEffect(() => {
+    setSelectedGenre(activeGenre);
+    setSelectedYear(activeYear);
+    setSelectedCountry(activeCountry);
+  }, [activeGenre, activeYear, activeCountry]);
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -52,6 +63,27 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
     onSearch(searchQuery);
   };
 
+  // --- RESET TOTAL (KLIK LOGO) ---
+  const handleLogoClick = (e) => {
+    e.preventDefault();
+    
+    // Hapus Storage
+    sessionStorage.clear();
+
+    // Reset Lokal
+    setSelectedGenre(null);
+    setSelectedYear(null);
+    setSelectedCountry(null);
+    
+    // Reset Parent
+    if (onReset) {
+        onReset();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+        window.location.href = "/";
+    }
+  };
+
   const handleGenreSelect = (genre) => {
     setSelectedGenre(genre);
     setIsGenreDropdownOpen(false);
@@ -70,13 +102,13 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
     onCountryFilter(country);
   };
 
-  const clearFilters = () => {
-    setSelectedGenre(null);
-    setSelectedYear(null);
-    setSelectedCountry(null);
-    onGenreFilter(null);
-    onYearFilter(null);
-    onCountryFilter(null);
+  // Logic untuk tombol "Clear All Filters" di dropdown
+  const clearFiltersAndNotify = () => {
+    if (onReset) onReset(); 
+    // Tutup semua dropdown
+    setIsGenreDropdownOpen(false);
+    setIsYearDropdownOpen(false);
+    setIsCountryDropdownOpen(false);
   };
 
   return (
@@ -89,23 +121,31 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
         <div className={`flex items-center justify-between transition-all duration-500 ${
           isScrolled ? 'h-16' : 'h-20'
         }`}>
-          {/* Logo with enhanced styling */}
+          {/* LOGO DENGAN FUNGSI RESET */}
           <div className="flex-shrink-0">
-            <a href="/" className="group relative no-underline">
+            <button 
+                onClick={handleLogoClick} 
+                className="group relative no-underline bg-transparent border-none cursor-pointer text-left p-0"
+            >
               <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-lg blur-xl group-hover:blur-2xl transition-all duration-500 opacity-0 group-hover:opacity-100"></div>
               <span className="relative text-2xl font-extrabold text-white tracking-tight transition-all duration-500 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-blue-400 group-hover:to-purple-400 group-hover:bg-clip-text">
                 CINEMA
                 <span className="ml-1 bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent transition-all duration-500">VIN</span>
               </span>
-            </a>
+            </button>
           </div>
 
           {/* Enhanced Desktop Navigation with Filters */}
           <div className="hidden lg:flex items-center space-x-3">
+            
             {/* Genre Dropdown */}
             <div className="relative">
               <button
-                onClick={() => setIsGenreDropdownOpen(!isGenreDropdownOpen)}
+                onClick={() => {
+                   setIsGenreDropdownOpen(!isGenreDropdownOpen);
+                   setIsYearDropdownOpen(false);
+                   setIsCountryDropdownOpen(false);
+                }}
                 className="relative text-gray-300 hover:text-white font-medium text-base transition-all duration-300 hover:scale-105 no-underline group px-3 py-2 rounded-lg hover:bg-gray-800/50"
               >
                 <span className="flex items-center">
@@ -127,8 +167,8 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                   <div className="max-h-80 overflow-y-auto p-2">
                     <div className="sticky top-0 bg-gray-800/95 backdrop-blur-xl pb-2 mb-2 border-b border-gray-700/50">
                       <button
-                        onClick={clearFilters}
-                        className="text-xs text-gray-400 hover:text-white transition-colors"
+                        onClick={clearFiltersAndNotify}
+                        className="text-xs text-gray-400 hover:text-white transition-colors w-full text-left px-2"
                       >
                         Clear All Filters
                       </button>
@@ -150,7 +190,11 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
             {/* Year Dropdown */}
             <div className="relative">
               <button
-                onClick={() => setIsYearDropdownOpen(!isYearDropdownOpen)}
+                onClick={() => {
+                    setIsYearDropdownOpen(!isYearDropdownOpen);
+                    setIsGenreDropdownOpen(false);
+                    setIsCountryDropdownOpen(false);
+                }}
                 className="relative text-gray-300 hover:text-white font-medium text-base transition-all duration-300 hover:scale-105 no-underline group px-3 py-2 rounded-lg hover:bg-gray-800/50"
               >
                 <span className="flex items-center">
@@ -172,8 +216,8 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                   <div className="max-h-80 overflow-y-auto p-2">
                     <div className="sticky top-0 bg-gray-800/95 backdrop-blur-xl pb-2 mb-2 border-b border-gray-700/50">
                       <button
-                        onClick={clearFilters}
-                        className="text-xs text-gray-400 hover:text-white transition-colors"
+                        onClick={clearFiltersAndNotify}
+                        className="text-xs text-gray-400 hover:text-white transition-colors w-full text-left px-2"
                       >
                         Clear All
                       </button>
@@ -195,7 +239,11 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
             {/* Country Dropdown */}
             <div className="relative">
               <button
-                onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
+                onClick={() => {
+                    setIsCountryDropdownOpen(!isCountryDropdownOpen);
+                    setIsGenreDropdownOpen(false);
+                    setIsYearDropdownOpen(false);
+                }}
                 className="relative text-gray-300 hover:text-white font-medium text-base transition-all duration-300 hover:scale-105 no-underline group px-3 py-2 rounded-lg hover:bg-gray-800/50"
               >
                 <span className="flex items-center">
@@ -205,20 +253,20 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                   </svg>
                 </span>
                 {selectedCountry && (
-                  <span className="ml-2 text-xs px-2 py-1 bg-green-600/30 text-green-300 rounded-full">
-                    {selectedCountry.english_name}
+                  <span className="ml-2 text-xs px-2 py-1 bg-emerald-600/30 text-emerald-300 rounded-full">
+                    {selectedCountry.iso_3166_1}
                   </span>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300"></div>
               </button>
               
               {isCountryDropdownOpen && (
-                <div className="absolute top-full left-0 mt-2 w-48 bg-gray-800/95 backdrop-blur-xl border border-gray-700/50 rounded-xl shadow-2xl animate-in slide-in-from-top duration-200">
+                <div className="absolute top-full left-0 mt-2 w-56 bg-gray-800/95 backdrop-blur-xl border border-gray-700/50 rounded-xl shadow-2xl animate-in slide-in-from-top duration-200">
                   <div className="max-h-80 overflow-y-auto p-2">
                     <div className="sticky top-0 bg-gray-800/95 backdrop-blur-xl pb-2 mb-2 border-b border-gray-700/50">
                       <button
-                        onClick={clearFilters}
-                        className="text-xs text-gray-400 hover:text-white transition-colors"
+                        onClick={clearFiltersAndNotify}
+                        className="text-xs text-gray-400 hover:text-white transition-colors w-full text-left px-2"
                       >
                         Clear All
                       </button>
@@ -255,7 +303,7 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
             ))}
           </div>
 
-          {/* Enhanced Search Bar */}
+          {/* Search Bar & Mobile Menu (Copy paste the rest from previous version, no changes here) */}
           <div className="hidden md:block">
             <form onSubmit={handleSearchSubmit} className="relative">
               <div className={`flex items-center transition-all duration-500 transform ${
@@ -295,7 +343,6 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
             </form>
           </div>
 
-          {/* Enhanced Mobile menu button */}
           <div className="lg:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
