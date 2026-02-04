@@ -158,8 +158,13 @@ export const getMovieVideos = async (id) => {
 
 // 2. Ambil Daftar Pemain (Cast)
 export const getMovieCredits = async (id) => {
-  const credits = await axios.get(`${baseUrl}/movie/${id}/credits?api_key=${apiKey}`);
-  return credits.data; // Berisi object { cast: [...], crew: [...] }
+  try {
+    const credits = await axios.get(`${baseUrl}/movie/${id}/credits?api_key=${apiKey}`);
+    return credits.data;
+  } catch (error) {
+    console.error("Error fetching credits:", error);
+    return null;
+  }
 };
 
 // 3. Ambil Film Similar
