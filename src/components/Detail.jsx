@@ -1,7 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
-import { getMovieDetails, searchMovie } from "../services/api";
+// UPDATE: Import getMovieVideos di sini
+import { getMovieDetails, searchMovie, getMovieVideos } from "../services/api";
 import NavBar from "./Navbar";
 import MovieList from "../components/MovieList";
 
@@ -9,6 +10,11 @@ const Detail = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [movieDetail, setMovieDetail] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  // UPDATE: State baru untuk Trailer
+  const [trailerKey, setTrailerKey] = useState(null);
+  const [showTrailer, setShowTrailer] = useState(false);
+
   const navigate = useNavigate();
 
   const baseImgUrl = process.env.REACT_APP_BASEIMGURL;
@@ -19,17 +25,35 @@ const Detail = () => {
   useEffect(() => {
     setLoading(true);
     setMovieDetail(null);
+    setTrailerKey(null); // Reset trailer saat ID berubah
     
-    getMovieDetails(id)
-      .then((result) => {
-        setMovieDetail(result);
+    // UPDATE: Mengambil Detail Film DAN Video Trailer secara bersamaan
+    const fetchData = async () => {
+      try {
+        // 1. Ambil Detail Film
+        const detailData = await getMovieDetails(id);
+        setMovieDetail(detailData);
+
+        // 2. Ambil Video Trailer
+        const videoData = await getMovieVideos(id);
+        
+        // Cari video yang typenya 'Trailer' dan dari situs 'YouTube'
+        const officialTrailer = videoData.find(
+          (vid) => vid.type === "Trailer" && vid.site === "YouTube"
+        );
+        
+        if (officialTrailer) {
+          setTrailerKey(officialTrailer.key);
+        }
+
         setLoading(false);
-      })
-      .catch((error) => {
-        console.error(error);
+      } catch (error) {
+        console.error("Error fetching data:", error);
         setLoading(false);
-      });
-    
+      }
+    };
+
+    fetchData();
     window.scrollTo(0, 0);
   }, [id]);
 
@@ -41,41 +65,30 @@ const Detail = () => {
   };
 
   // --- LOGIC PERBAIKAN NAVIGASI DARI DETAIL KE HOME FILTER ---
-  // Saat user klik filter di halaman detail, simpan datanya lalu lempar ke home
-  
   const handleGenreRedirect = (genre) => {
-    // 1. Simpan filter yang dipilih user
     sessionStorage.setItem('activeGenre', JSON.stringify(genre));
     sessionStorage.setItem('currentView', 'filter');
-    
-    // 2. Reset filter lain biar gak tabrakan
     sessionStorage.removeItem('activeYear');
     sessionStorage.removeItem('activeCountry');
     sessionStorage.removeItem('searchResults');
-    
-    // 3. Pindah ke Home (Home akan baca sessionStorage dan auto-fetch)
     navigate('/');
   };
 
   const handleYearRedirect = (year) => {
     sessionStorage.setItem('activeYear', JSON.stringify(year));
     sessionStorage.setItem('currentView', 'filter');
-    
     sessionStorage.removeItem('activeGenre');
     sessionStorage.removeItem('activeCountry');
     sessionStorage.removeItem('searchResults');
-    
     navigate('/');
   };
 
   const handleCountryRedirect = (country) => {
     sessionStorage.setItem('activeCountry', JSON.stringify(country));
     sessionStorage.setItem('currentView', 'filter');
-    
     sessionStorage.removeItem('activeGenre');
     sessionStorage.removeItem('activeYear');
     sessionStorage.removeItem('searchResults');
-    
     navigate('/');
   };
 
@@ -105,8 +118,7 @@ const Detail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
-      {/* UPDATE PROPS NAVBAR DENGAN HANDLER BARU */}
+    <div className="min-h-screen bg-black text-white flex flex-col relative">
       <NavBar 
         onSearch={search}
         onGenreFilter={handleGenreRedirect}
@@ -114,6 +126,32 @@ const Detail = () => {
         onCountryFilter={handleCountryRedirect}
       />
       
+      {/* UPDATE: MODAL POPUP TRAILER */}
+      {/* Ini hanya muncul jika tombol Watch Trailer diklik */}
+      {showTrailer && trailerKey && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-in fade-in duration-300">
+            <div className="relative w-full max-w-5xl aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl border border-gray-700">
+                {/* Tombol Close (X) */}
+                <button 
+                    onClick={() => setShowTrailer(false)}
+                    className="absolute top-4 right-4 z-10 p-2 bg-black/50 hover:bg-red-600 text-white rounded-full transition-colors"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+                {/* YouTube Iframe */}
+                <iframe
+                    src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1`}
+                    title="Movie Trailer"
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                ></iframe>
+            </div>
+        </div>
+      )}
+
       <div className="flex-grow">
         {searchResults.length > 0 ? (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -212,7 +250,22 @@ const Detail = () => {
                       </p>
                     </div>
 
+                    {/* UPDATE: BUTTONS AREA */}
                     <div className="flex flex-wrap gap-4 justify-center md:justify-start mb-12">
+                      
+                      {/* UPDATE: Tombol Watch Trailer (Hanya muncul jika trailerKey ada) */}
+                      {trailerKey && (
+                          <button
+                            onClick={() => setShowTrailer(true)}
+                            className="inline-flex items-center px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all hover:-translate-y-1 shadow-lg shadow-red-900/30 cursor-pointer animate-pulse hover:animate-none border-none"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="mr-2 w-6 h-6">
+                                <path fillRule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z" clipRule="evenodd" />
+                            </svg>
+                            Watch Trailer
+                          </button>
+                      )}
+
                       {movieDetail.homepage && (
                         <a
                           href={movieDetail.homepage}

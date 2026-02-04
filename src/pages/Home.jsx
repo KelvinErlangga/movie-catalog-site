@@ -428,7 +428,8 @@ const Home = () => {
               </div>
             ) : getActiveDataSource().length > 0 ? (
               <>
-                <MovieList movies={getPaginatedMovies()} />
+                {/* UPDATE 1: Kirim type 'search' atau 'filter' */}
+                <MovieList movies={getPaginatedMovies()} type={currentView} />
                 <Pagination totalItems={getActiveDataSource().length} />
               </>
             ) : (
@@ -451,7 +452,8 @@ const Home = () => {
                     <IoIosArrowUp />
                   </button>
                 </div>
-                <MovieList movies={nowPlayingMovies} />
+                {/* UPDATE 2: Kirim type 'now_playing' */}
+                <MovieList movies={nowPlayingMovies} type="now_playing" />
               </section>
               <section className="py-12 border-t border-gray-800" id="popular">
                 <div className="flex items-center justify-between mb-8">
@@ -460,16 +462,18 @@ const Home = () => {
                     <IoIosArrowUp />
                   </button>
                 </div>
-                <MovieList movies={popularMovies} />
+                {/* UPDATE 3: Kirim type 'popular' */}
+                <MovieList movies={popularMovies} type="popular" />
               </section>
               <section className="py-12 border-t border-gray-800" id="top_rated">
                 <div className="flex items-center justify-between mb-8">
                   <h2 className="text-2xl md:text-3xl font-bold">Top Rated</h2>
                   <button onClick={() => scrollToSection("top_rated")} className="text-gray-400 hover:text-white">
-                     <IoIosArrowUp />
+                      <IoIosArrowUp />
                   </button>
                 </div>
-                <MovieList movies={topRatedMovies} />
+                {/* UPDATE 4: Kirim type 'top_rated' */}
+                <MovieList movies={topRatedMovies} type="top_rated" />
               </section>
             </div>
             <footer className="border-t border-gray-800 py-8 mt-16">

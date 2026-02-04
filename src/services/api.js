@@ -144,3 +144,26 @@ export const getCountries = () => {
     { iso_3166_1: "US", english_name: "United States" }
   ];
 };
+
+// 1. Ambil Video Trailer
+export const getMovieVideos = async (id) => {
+  try {
+    const videos = await axios.get(`${baseUrl}/movie/${id}/videos?api_key=${apiKey}`);
+    return videos.data.results;
+  } catch (error) {
+    console.error("Error fetching videos:", error);
+    return [];
+  }
+};
+
+// 2. Ambil Daftar Pemain (Cast)
+export const getMovieCredits = async (id) => {
+  const credits = await axios.get(`${baseUrl}/movie/${id}/credits?api_key=${apiKey}`);
+  return credits.data; // Berisi object { cast: [...], crew: [...] }
+};
+
+// 3. Ambil Film Similar
+export const getSimilarMovies = async (id) => {
+  const similar = await axios.get(`${baseUrl}/movie/${id}/similar?page=1&api_key=${apiKey}`);
+  return similar.data.results;
+};
