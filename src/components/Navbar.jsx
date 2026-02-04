@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { getMovieGenres, getCountries } from "../services/api";
+import { useTheme } from "../context/ThemeContext"; // 1. Import Context
+import { IoMdMoon, IoMdSunny } from "react-icons/io"; // 2. Import Icons
 
 // Terima props activeGenre, activeYear, activeCountry
 export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountryFilter, onReset, activeGenre, activeYear, activeCountry }) {
+  const { theme, toggleTheme } = useTheme(); // 3. Gunakan Theme Context
+  
   const [searchQuery, setSearchQuery] = useState("");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -23,7 +27,6 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
   const years = Array.from({ length: 55 }, (_, i) => 2024 - i);
 
   // --- SINKRONISASI UI DENGAN PROPS DARI HOME ---
-  // Ini penting agar saat "Back", tulisan "Country" berubah jadi "Indonesia" lagi
   useEffect(() => {
     setSelectedGenre(activeGenre);
     setSelectedYear(activeYear);
@@ -112,10 +115,11 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
   };
 
   return (
+    // UBAH: Background dinamis (putih di light, gelap di dark)
     <nav className={`sticky top-0 z-50 transition-all duration-500 ${
       isScrolled 
-        ? 'bg-gray-900/95 backdrop-blur-xl border-b border-gray-700/50 shadow-2xl shadow-black/20' 
-        : 'bg-gray-900/80 backdrop-blur-md border-b border-gray-800/30'
+        ? 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700/50 shadow-2xl shadow-gray-200/50 dark:shadow-black/20' 
+        : 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-transparent dark:border-gray-800/30'
     }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className={`flex items-center justify-between transition-all duration-500 ${
@@ -128,7 +132,8 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                 className="group relative no-underline bg-transparent border-none cursor-pointer text-left p-0"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-lg blur-xl group-hover:blur-2xl transition-all duration-500 opacity-0 group-hover:opacity-100"></div>
-              <span className="relative text-2xl font-extrabold text-white tracking-tight transition-all duration-500 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-blue-400 group-hover:to-purple-400 group-hover:bg-clip-text">
+              {/* UBAH: Warna Text Logo */}
+              <span className="relative text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight transition-all duration-500 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-blue-400 group-hover:to-purple-400 group-hover:bg-clip-text">
                 CINEMA
                 <span className="ml-1 bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent transition-all duration-500">VIN</span>
               </span>
@@ -146,7 +151,8 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                    setIsYearDropdownOpen(false);
                    setIsCountryDropdownOpen(false);
                 }}
-                className="relative text-gray-300 hover:text-white font-medium text-base transition-all duration-300 hover:scale-105 no-underline group px-3 py-2 rounded-lg hover:bg-gray-800/50"
+                // UBAH: Warna text tombol dropdown
+                className="relative text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium text-base transition-all duration-300 hover:scale-105 no-underline group px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/50"
               >
                 <span className="flex items-center">
                   Genre
@@ -155,7 +161,7 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                   </svg>
                 </span>
                 {selectedGenre && (
-                  <span className="ml-2 text-xs px-2 py-1 bg-blue-600/30 text-blue-300 rounded-full">
+                  <span className="ml-2 text-xs px-2 py-1 bg-blue-100 dark:bg-blue-600/30 text-blue-800 dark:text-blue-300 rounded-full">
                     {selectedGenre.name}
                   </span>
                 )}
@@ -163,12 +169,13 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
               </button>
               
               {isGenreDropdownOpen && (
-                <div className="absolute top-full left-0 mt-2 w-64 bg-gray-800/95 backdrop-blur-xl border border-gray-700/50 rounded-xl shadow-2xl animate-in slide-in-from-top duration-200">
-                  <div className="max-h-80 overflow-y-auto p-2">
-                    <div className="sticky top-0 bg-gray-800/95 backdrop-blur-xl pb-2 mb-2 border-b border-gray-700/50">
+                // UBAH: Background Dropdown Menu
+                <div className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-gray-800/95 backdrop-blur-xl border border-gray-200 dark:border-gray-700/50 rounded-xl shadow-2xl animate-in slide-in-from-top duration-200">
+                  <div className="max-h-80 overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
+                    <div className="sticky top-0 bg-white dark:bg-gray-800/95 backdrop-blur-xl pb-2 mb-2 border-b border-gray-200 dark:border-gray-700/50">
                       <button
                         onClick={clearFiltersAndNotify}
-                        className="text-xs text-gray-400 hover:text-white transition-colors w-full text-left px-2"
+                        className="text-xs text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors w-full text-left px-2"
                       >
                         Clear All Filters
                       </button>
@@ -177,7 +184,7 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                       <button
                         key={genre.id}
                         onClick={() => handleGenreSelect(genre)}
-                        className="w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all duration-200 no-underline text-sm"
+                        className="w-full text-left px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200 no-underline text-sm"
                       >
                         {genre.name}
                       </button>
@@ -191,11 +198,11 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
             <div className="relative">
               <button
                 onClick={() => {
-                    setIsYearDropdownOpen(!isYearDropdownOpen);
-                    setIsGenreDropdownOpen(false);
-                    setIsCountryDropdownOpen(false);
+                   setIsYearDropdownOpen(!isYearDropdownOpen);
+                   setIsGenreDropdownOpen(false);
+                   setIsCountryDropdownOpen(false);
                 }}
-                className="relative text-gray-300 hover:text-white font-medium text-base transition-all duration-300 hover:scale-105 no-underline group px-3 py-2 rounded-lg hover:bg-gray-800/50"
+                className="relative text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium text-base transition-all duration-300 hover:scale-105 no-underline group px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/50"
               >
                 <span className="flex items-center">
                   Year
@@ -204,7 +211,7 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                   </svg>
                 </span>
                 {selectedYear && (
-                  <span className="ml-2 text-xs px-2 py-1 bg-purple-600/30 text-purple-300 rounded-full">
+                  <span className="ml-2 text-xs px-2 py-1 bg-purple-100 dark:bg-purple-600/30 text-purple-800 dark:text-purple-300 rounded-full">
                     {selectedYear}
                   </span>
                 )}
@@ -212,12 +219,12 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
               </button>
               
               {isYearDropdownOpen && (
-                <div className="absolute top-full left-0 mt-2 w-32 bg-gray-800/95 backdrop-blur-xl border border-gray-700/50 rounded-xl shadow-2xl animate-in slide-in-from-top duration-200">
-                  <div className="max-h-80 overflow-y-auto p-2">
-                    <div className="sticky top-0 bg-gray-800/95 backdrop-blur-xl pb-2 mb-2 border-b border-gray-700/50">
+                <div className="absolute top-full left-0 mt-2 w-32 bg-white dark:bg-gray-800/95 backdrop-blur-xl border border-gray-200 dark:border-gray-700/50 rounded-xl shadow-2xl animate-in slide-in-from-top duration-200">
+                  <div className="max-h-80 overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
+                    <div className="sticky top-0 bg-white dark:bg-gray-800/95 backdrop-blur-xl pb-2 mb-2 border-b border-gray-200 dark:border-gray-700/50">
                       <button
                         onClick={clearFiltersAndNotify}
-                        className="text-xs text-gray-400 hover:text-white transition-colors w-full text-left px-2"
+                        className="text-xs text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors w-full text-left px-2"
                       >
                         Clear All
                       </button>
@@ -226,7 +233,7 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                       <button
                         key={year}
                         onClick={() => handleYearSelect(year)}
-                        className="w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all duration-200 no-underline text-sm"
+                        className="w-full text-left px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200 no-underline text-sm"
                       >
                         {year}
                       </button>
@@ -240,11 +247,11 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
             <div className="relative">
               <button
                 onClick={() => {
-                    setIsCountryDropdownOpen(!isCountryDropdownOpen);
-                    setIsGenreDropdownOpen(false);
-                    setIsYearDropdownOpen(false);
+                   setIsCountryDropdownOpen(!isCountryDropdownOpen);
+                   setIsGenreDropdownOpen(false);
+                   setIsYearDropdownOpen(false);
                 }}
-                className="relative text-gray-300 hover:text-white font-medium text-base transition-all duration-300 hover:scale-105 no-underline group px-3 py-2 rounded-lg hover:bg-gray-800/50"
+                className="relative text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium text-base transition-all duration-300 hover:scale-105 no-underline group px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/50"
               >
                 <span className="flex items-center">
                   Country
@@ -253,7 +260,7 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                   </svg>
                 </span>
                 {selectedCountry && (
-                  <span className="ml-2 text-xs px-2 py-1 bg-emerald-600/30 text-emerald-300 rounded-full">
+                  <span className="ml-2 text-xs px-2 py-1 bg-emerald-100 dark:bg-emerald-600/30 text-emerald-800 dark:text-emerald-300 rounded-full">
                     {selectedCountry.iso_3166_1}
                   </span>
                 )}
@@ -261,12 +268,12 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
               </button>
               
               {isCountryDropdownOpen && (
-                <div className="absolute top-full left-0 mt-2 w-56 bg-gray-800/95 backdrop-blur-xl border border-gray-700/50 rounded-xl shadow-2xl animate-in slide-in-from-top duration-200">
-                  <div className="max-h-80 overflow-y-auto p-2">
-                    <div className="sticky top-0 bg-gray-800/95 backdrop-blur-xl pb-2 mb-2 border-b border-gray-700/50">
+                <div className="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-gray-800/95 backdrop-blur-xl border border-gray-200 dark:border-gray-700/50 rounded-xl shadow-2xl animate-in slide-in-from-top duration-200">
+                  <div className="max-h-80 overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
+                    <div className="sticky top-0 bg-white dark:bg-gray-800/95 backdrop-blur-xl pb-2 mb-2 border-b border-gray-200 dark:border-gray-700/50">
                       <button
                         onClick={clearFiltersAndNotify}
-                        className="text-xs text-gray-400 hover:text-white transition-colors w-full text-left px-2"
+                        className="text-xs text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors w-full text-left px-2"
                       >
                         Clear All
                       </button>
@@ -275,7 +282,7 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                       <button
                         key={country.iso_3166_1}
                         onClick={() => handleCountrySelect(country)}
-                        className="w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all duration-200 no-underline text-sm"
+                        className="w-full text-left px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200 no-underline text-sm"
                       >
                         {country.english_name}
                       </button>
@@ -294,7 +301,8 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
               <a 
                 key={item.name}
                 href={item.href} 
-                className="relative text-gray-300 hover:text-white font-medium text-xs transition-all duration-300 hover:scale-105 no-underline group"
+                // UBAH: Warna link
+                className="relative text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium text-xs transition-all duration-300 hover:scale-105 no-underline group"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 <span className="relative z-10">{item.name}</span>
@@ -303,8 +311,8 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
             ))}
           </div>
 
-          {/* Search Bar & Mobile Menu (Copy paste the rest from previous version, no changes here) */}
-          <div className="hidden md:block">
+          {/* Search Bar & Mobile Menu & Dark Mode Toggle */}
+          <div className="hidden md:flex items-center space-x-3">
             <form onSubmit={handleSearchSubmit} className="relative">
               <div className={`flex items-center transition-all duration-500 transform ${
                 isSearchFocused ? 'scale-105' : ''
@@ -313,13 +321,14 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                   <div className={`absolute inset-0 bg-gradient-to-r from-blue-600/30 to-purple-600/30 rounded-xl transition-all duration-500 ${
                     isSearchFocused ? 'opacity-100 blur-sm' : 'opacity-0'
                   }`}></div>
+                  {/* UBAH: Style Input Search */}
                   <input
                     type="text"
                     placeholder="Discover movies..."
-                    className={`relative w-64 px-4 py-2 pr-10 bg-gray-800/60 border rounded-xl text-white placeholder-gray-500 focus:outline-none transition-all duration-500 text-sm font-light backdrop-blur-sm ${
+                    className={`relative w-64 px-4 py-2 pr-10 bg-gray-100 dark:bg-gray-800/60 border rounded-xl text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none transition-all duration-500 text-sm font-light backdrop-blur-sm ${
                       isSearchFocused 
-                        ? 'border-blue-500/50 bg-gray-800/80 shadow-xl shadow-blue-500/20' 
-                        : 'border-gray-700/50 hover:border-gray-600'
+                        ? 'border-blue-500/50 bg-white dark:bg-gray-800/80 shadow-xl shadow-blue-500/10 dark:shadow-blue-500/20' 
+                        : 'border-gray-300 dark:border-gray-700/50 hover:border-gray-400 dark:hover:border-gray-600'
                     }`}
                     value={searchQuery}
                     onChange={handleSearchChange}
@@ -331,7 +340,7 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                     className={`absolute right-2 p-2 rounded-lg transition-all duration-500 transform ${
                       isSearchFocused
                         ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg scale-110' 
-                        : 'bg-gray-700/50 text-gray-400 hover:bg-gray-600 hover:text-white hover:scale-105'
+                        : 'bg-gray-200 dark:bg-gray-700/50 text-gray-400 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600 hover:text-black dark:hover:text-white hover:scale-105'
                     }`}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-4 w-4">
@@ -341,12 +350,36 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                 </div>
               </div>
             </form>
+
+            {/* --- FITUR BARU: TOMBOL TOGGLE THEME DESKTOP --- */}
+            <button
+                onClick={toggleTheme}
+                className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-yellow-500 dark:text-blue-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300 shadow-sm border border-gray-200 dark:border-gray-700"
+                aria-label="Toggle Theme"
+            >
+                {theme === 'dark' ? (
+                    // Kalau Mode Gelap -> Tampilkan Matahari
+                    <IoMdSunny className="w-5 h-5" />
+                ) : (
+                    // Kalau Mode Terang -> Tampilkan Bulan
+                    <IoMdMoon className="w-5 h-5" />
+                )}
+            </button>
           </div>
 
-          <div className="lg:hidden">
+          <div className="lg:hidden flex items-center space-x-2">
+            
+            {/* --- FITUR BARU: TOMBOL TOGGLE THEME MOBILE --- */}
+            <button
+                onClick={toggleTheme}
+                className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-yellow-500 dark:text-blue-300 border border-gray-200 dark:border-gray-700"
+            >
+                {theme === 'dark' ? <IoMdSunny className="w-5 h-5" /> : <IoMdMoon className="w-5 h-5" />}
+            </button>
+
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="relative text-gray-400 hover:text-white p-3 rounded-xl hover:bg-gray-800/50 transition-all duration-300 group"
+              className="relative text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-all duration-300 group"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-xl scale-0 group-hover:scale-100 transition-transform duration-300"></div>
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="relative h-6 w-6">
@@ -362,13 +395,14 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
 
         {/* Enhanced Mobile menu */}
         {isMenuOpen && (
-          <div className="lg:hidden border-t border-gray-800/50 backdrop-blur-xl animate-in slide-in-from-top duration-300">
+          // UBAH: Background Mobile Menu
+          <div className="lg:hidden border-t border-gray-200 dark:border-gray-800/50 backdrop-blur-xl animate-in slide-in-from-top duration-300 bg-white/95 dark:bg-gray-900/95">
             <div className="px-4 py-6 space-y-3">
               {/* Mobile Genre Filter */}
               <div className="relative">
                 <button
                   onClick={() => setIsGenreDropdownOpen(!isGenreDropdownOpen)}
-                  className="w-full text-left text-gray-300 hover:text-white font-medium text-base py-2 px-3 rounded-lg hover:bg-gray-800/50 transition-all duration-300 no-underline group"
+                  className="w-full text-left text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium text-base py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-all duration-300 no-underline group"
                 >
                   <span className="flex items-center justify-between">
                     Genre
@@ -379,12 +413,12 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                 </button>
                 
                 {isGenreDropdownOpen && (
-                  <div className="mt-2 bg-gray-800/95 backdrop-blur-xl border border-gray-700/50 rounded-xl p-2 max-h-60 overflow-y-auto">
+                  <div className="mt-2 bg-gray-100 dark:bg-gray-800/95 backdrop-blur-xl border border-gray-200 dark:border-gray-700/50 rounded-xl p-2 max-h-60 overflow-y-auto">
                     {genres.map((genre) => (
                       <button
                         key={genre.id}
                         onClick={() => handleGenreSelect(genre)}
-                        className="w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all duration-200 no-underline text-sm"
+                        className="w-full text-left px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200 no-underline text-sm"
                       >
                         {genre.name}
                       </button>
@@ -397,7 +431,7 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
               <div className="relative">
                 <button
                   onClick={() => setIsYearDropdownOpen(!isYearDropdownOpen)}
-                  className="w-full text-left text-gray-300 hover:text-white font-medium text-base py-2 px-3 rounded-lg hover:bg-gray-800/50 transition-all duration-300 no-underline group"
+                  className="w-full text-left text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium text-base py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-all duration-300 no-underline group"
                 >
                   <span className="flex items-center justify-between">
                     Year
@@ -408,12 +442,12 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                 </button>
                 
                 {isYearDropdownOpen && (
-                  <div className="mt-2 bg-gray-800/95 backdrop-blur-xl border border-gray-700/50 rounded-xl p-2 max-h-60 overflow-y-auto">
+                  <div className="mt-2 bg-gray-100 dark:bg-gray-800/95 backdrop-blur-xl border border-gray-200 dark:border-gray-700/50 rounded-xl p-2 max-h-60 overflow-y-auto">
                     {years.map((year) => (
                       <button
                         key={year}
                         onClick={() => handleYearSelect(year)}
-                        className="w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all duration-200 no-underline text-sm"
+                        className="w-full text-left px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200 no-underline text-sm"
                       >
                         {year}
                       </button>
@@ -426,7 +460,7 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
               <div className="relative">
                 <button
                   onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
-                  className="w-full text-left text-gray-300 hover:text-white font-medium text-base py-2 px-3 rounded-lg hover:bg-gray-800/50 transition-all duration-300 no-underline group"
+                  className="w-full text-left text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium text-base py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-all duration-300 no-underline group"
                 >
                   <span className="flex items-center justify-between">
                     Country
@@ -437,12 +471,12 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                 </button>
                 
                 {isCountryDropdownOpen && (
-                  <div className="mt-2 bg-gray-800/95 backdrop-blur-xl border border-gray-700/50 rounded-xl p-2 max-h-60 overflow-y-auto">
+                  <div className="mt-2 bg-gray-100 dark:bg-gray-800/95 backdrop-blur-xl border border-gray-200 dark:border-gray-700/50 rounded-xl p-2 max-h-60 overflow-y-auto">
                     {countries.map((country) => (
                       <button
                         key={country.iso_3166_1}
                         onClick={() => handleCountrySelect(country)}
-                        className="w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all duration-200 no-underline text-sm"
+                        className="w-full text-left px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200 no-underline text-sm"
                       >
                         {country.english_name}
                       </button>
@@ -460,7 +494,7 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                 <a 
                   key={item.name}
                   href={item.href} 
-                  className="block text-gray-300 hover:text-white font-medium text-base py-2 px-3 rounded-lg hover:bg-gray-800/50 transition-all duration-300 no-underline group"
+                  className="block text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium text-base py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-all duration-300 no-underline group"
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <span className="relative z-10">{item.name}</span>
@@ -475,7 +509,7 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                   <input
                     type="text"
                     placeholder="Discover movies..."
-                    className="relative w-full px-4 py-2.5 pr-10 bg-gray-800/60 border border-gray-700/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:bg-gray-800/80 transition-all duration-300 text-sm font-light backdrop-blur-sm"
+                    className="relative w-full px-4 py-2.5 pr-10 bg-gray-100 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700/50 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:bg-white dark:focus:bg-gray-800/80 transition-all duration-300 text-sm font-light backdrop-blur-sm"
                     value={searchQuery}
                     onChange={handleSearchChange}
                   />

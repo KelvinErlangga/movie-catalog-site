@@ -119,7 +119,8 @@ const Detail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col relative">
+    // <div className="min-h-screen bg-black text-white flex flex-col relative">
+    <div className="min-h-screen transition-colors duration-300 bg-gray-50 text-gray-900 dark:bg-black dark:text-white flex flex-col relative">
       <NavBar 
         onSearch={search}
         onGenreFilter={handleGenreRedirect}

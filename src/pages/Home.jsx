@@ -364,7 +364,8 @@ const Home = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    // <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen transition-colors duration-300 bg-gray-50 text-gray-900 dark:bg-black dark:text-white">
       <NavBar 
         onSearch={search} 
         onGenreFilter={handleGenreFilter} 
