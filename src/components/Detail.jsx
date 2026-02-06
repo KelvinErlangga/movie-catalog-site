@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { getMovieDetails, searchMovie, getMovieVideos, getMovieCredits } from "../services/api";
 import NavBar from "./Navbar";
 import MovieList from "../components/MovieList";
+import Footer from "./Footer";
 
 const Detail = () => {
   const [searchResults, setSearchResults] = useState([]);
@@ -352,9 +353,9 @@ const Detail = () => {
         )}
       </div>
 
-      <footer className="border-t border-gray-800 bg-black py-8 mt-auto z-20 relative text-center">
-        <p className="text-gray-400 font-medium">&copy; 2026 CINEMAVIN. All rights reserved.</p>
-      </footer>
+      <div className="mt-auto z-20 relative">
+        <Footer />
+      </div>
     </div>
   );
 };

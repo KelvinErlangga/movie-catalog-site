@@ -4,6 +4,7 @@ import NavBar from "../components/Navbar";
 import MovieCarousel from "../components/Carousel";
 import MovieList from "../components/MovieList";
 import { IoIosArrowUp, IoMdArrowRoundUp, IoMdArrowRoundDown } from "react-icons/io";
+import Footer from "../components/Footer";
 
 const Home = () => {
   const [showScrollToTop, setShowScrollToTop] = useState(false);
@@ -477,14 +478,7 @@ const Home = () => {
                 <MovieList movies={topRatedMovies} type="top_rated" />
               </section>
             </div>
-            <footer className="border-t border-gray-800 py-8 mt-16">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center text-gray-400">
-                  <p>&copy; 2026 CINEMAVIN. All rights reserved.</p>
-                  <p className="text-sm mt-2">Discover your next favorite movie</p>
-                </div>
-              </div>
-            </footer>
+            <Footer />
           </>
         )}
       </div>

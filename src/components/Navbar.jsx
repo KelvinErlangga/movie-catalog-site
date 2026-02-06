@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { getMovieGenres, getCountries } from "../services/api";
-import { useTheme } from "../context/ThemeContext"; // 1. Import Context
-import { IoMdMoon, IoMdSunny } from "react-icons/io"; // 2. Import Icons
+import { useTheme } from "../context/ThemeContext";
+import { IoMdMoon, IoMdSunny } from "react-icons/io";
 
-// Terima props activeGenre, activeYear, activeCountry
 export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountryFilter, onReset, activeGenre, activeYear, activeCountry }) {
-  const { theme, toggleTheme } = useTheme(); // 3. Gunakan Theme Context
+  const { theme, toggleTheme } = useTheme();
   
   const [searchQuery, setSearchQuery] = useState("");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -19,14 +18,35 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
   const [countries, setCountries] = useState([]);
   const [genres, setGenres] = useState([]);
   
-  // STATE LOKAL INI SEKARANG AKAN DISINKRONISASI DENGAN PROPS
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [selectedGenre, setSelectedGenre] = useState(null);
   const [selectedYear, setSelectedYear] = useState(null);
 
-  const years = Array.from({ length: 55 }, (_, i) => 2024 - i);
+  const dropdownRef = useRef(null);
 
-  // --- SINKRONISASI UI DENGAN PROPS DARI HOME ---
+  // --- PERBAIKAN LOGIC TAHUN ---
+  // Kita ambil tahun sekarang secara otomatis (2026)
+  const currentYear = new Date().getFullYear();
+  // Kita buat array mundur 50 tahun ke belakang, DIMULAI DARI currentYear + 1 (2027)
+  // Jadi listnya: 2027, 2026, 2025, 2024, ... dst
+  const years = Array.from({ length: 50 }, (_, i) => currentYear + 1 - i);
+
+  // --- LOGIC CLICK OUTSIDE ---
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsGenreDropdownOpen(false);
+        setIsYearDropdownOpen(false);
+        setIsCountryDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   useEffect(() => {
     setSelectedGenre(activeGenre);
     setSelectedYear(activeYear);
@@ -66,19 +86,12 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
     onSearch(searchQuery);
   };
 
-  // --- RESET TOTAL (KLIK LOGO) ---
   const handleLogoClick = (e) => {
     e.preventDefault();
-    
-    // Hapus Storage
     sessionStorage.clear();
-
-    // Reset Lokal
     setSelectedGenre(null);
     setSelectedYear(null);
     setSelectedCountry(null);
-    
-    // Reset Parent
     if (onReset) {
         onReset();
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -105,43 +118,38 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
     onCountryFilter(country);
   };
 
-  // Logic untuk tombol "Clear All Filters" di dropdown
   const clearFiltersAndNotify = () => {
     if (onReset) onReset(); 
-    // Tutup semua dropdown
     setIsGenreDropdownOpen(false);
     setIsYearDropdownOpen(false);
     setIsCountryDropdownOpen(false);
   };
 
   return (
-    // UBAH: Background dinamis (putih di light, gelap di dark)
     <nav className={`sticky top-0 z-50 transition-all duration-500 ${
       isScrolled 
-        ? 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700/50 shadow-2xl shadow-gray-200/50 dark:shadow-black/20' 
-        : 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-transparent dark:border-gray-800/30'
+        ? 'bg-white/95 dark:bg-black/95 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800 shadow-lg' 
+        : 'bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-transparent dark:border-gray-800/30'
     }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className={`flex items-center justify-between transition-all duration-500 ${
           isScrolled ? 'h-16' : 'h-20'
         }`}>
-          {/* LOGO DENGAN FUNGSI RESET */}
+          
           <div className="flex-shrink-0">
             <button 
                 onClick={handleLogoClick} 
                 className="group relative no-underline bg-transparent border-none cursor-pointer text-left p-0"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-lg blur-xl group-hover:blur-2xl transition-all duration-500 opacity-0 group-hover:opacity-100"></div>
-              {/* UBAH: Warna Text Logo */}
-              <span className="relative text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight transition-all duration-500 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-blue-400 group-hover:to-purple-400 group-hover:bg-clip-text">
+              <span className="relative text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">
                 CINEMA
-                <span className="ml-1 bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent transition-all duration-500">VIN</span>
+                <span className="ml-1 bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">VIN</span>
               </span>
             </button>
           </div>
 
-          {/* Enhanced Desktop Navigation with Filters */}
-          <div className="hidden lg:flex items-center space-x-3">
+          {/* Desktop Navigation */}
+          <div className="hidden lg:flex items-center space-x-3" ref={dropdownRef}>
             
             {/* Genre Dropdown */}
             <div className="relative">
@@ -151,31 +159,33 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                    setIsYearDropdownOpen(false);
                    setIsCountryDropdownOpen(false);
                 }}
-                // UBAH: Warna text tombol dropdown
-                className="relative text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium text-base transition-all duration-300 hover:scale-105 no-underline group px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/50"
+                className={`relative font-medium text-base transition-all duration-300 no-underline group px-3 py-2 rounded-lg border 
+                  ${isGenreDropdownOpen 
+                    ? 'text-gray-900 bg-white border-gray-200 shadow-sm' 
+                    : 'text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white border-transparent'
+                  }`}
               >
                 <span className="flex items-center">
                   Genre
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="ml-1 h-4 w-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className={`ml-1 h-4 w-4 transition-transform ${isGenreDropdownOpen ? 'rotate-180' : ''}`}>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </span>
                 {selectedGenre && (
-                  <span className="ml-2 text-xs px-2 py-1 bg-blue-100 dark:bg-blue-600/30 text-blue-800 dark:text-blue-300 rounded-full">
-                    {selectedGenre.name}
+                  <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
                   </span>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300"></div>
               </button>
               
               {isGenreDropdownOpen && (
-                // UBAH: Background Dropdown Menu
-                <div className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-gray-800/95 backdrop-blur-xl border border-gray-200 dark:border-gray-700/50 rounded-xl shadow-2xl animate-in slide-in-from-top duration-200">
-                  <div className="max-h-80 overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
-                    <div className="sticky top-0 bg-white dark:bg-gray-800/95 backdrop-blur-xl pb-2 mb-2 border-b border-gray-200 dark:border-gray-700/50">
+                <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-xl shadow-2xl animate-in slide-in-from-top-2 duration-200 overflow-hidden z-50">
+                  <div className="max-h-80 overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-gray-300">
+                    <div className="sticky top-0 bg-white pb-2 mb-2 border-b border-gray-100 z-10">
                       <button
                         onClick={clearFiltersAndNotify}
-                        className="text-xs text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors w-full text-left px-2"
+                        className="text-xs font-bold text-red-500 hover:text-red-700 transition-colors w-full text-left px-2 py-1 uppercase tracking-wider"
                       >
                         Clear All Filters
                       </button>
@@ -184,7 +194,11 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                       <button
                         key={genre.id}
                         onClick={() => handleGenreSelect(genre)}
-                        className="w-full text-left px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200 no-underline text-sm"
+                        className={`w-full text-left px-3 py-2.5 rounded-lg transition-all duration-200 text-sm mb-1
+                          ${selectedGenre?.id === genre.id 
+                            ? 'bg-blue-50 text-blue-700 font-bold' 
+                            : 'text-gray-700 hover:bg-gray-100 hover:text-black'
+                          }`}
                       >
                         {genre.name}
                       </button>
@@ -202,38 +216,47 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                    setIsGenreDropdownOpen(false);
                    setIsCountryDropdownOpen(false);
                 }}
-                className="relative text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium text-base transition-all duration-300 hover:scale-105 no-underline group px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/50"
+                className={`relative font-medium text-base transition-all duration-300 no-underline group px-3 py-2 rounded-lg border
+                  ${isYearDropdownOpen 
+                    ? 'text-gray-900 bg-white border-gray-200 shadow-sm' 
+                    : 'text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white border-transparent'
+                  }`}
               >
                 <span className="flex items-center">
                   Year
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="ml-1 h-4 w-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className={`ml-1 h-4 w-4 transition-transform ${isYearDropdownOpen ? 'rotate-180' : ''}`}>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </span>
                 {selectedYear && (
-                  <span className="ml-2 text-xs px-2 py-1 bg-purple-100 dark:bg-purple-600/30 text-purple-800 dark:text-purple-300 rounded-full">
-                    {selectedYear}
+                  <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-purple-500"></span>
                   </span>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300"></div>
               </button>
               
               {isYearDropdownOpen && (
-                <div className="absolute top-full left-0 mt-2 w-32 bg-white dark:bg-gray-800/95 backdrop-blur-xl border border-gray-200 dark:border-gray-700/50 rounded-xl shadow-2xl animate-in slide-in-from-top duration-200">
-                  <div className="max-h-80 overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
-                    <div className="sticky top-0 bg-white dark:bg-gray-800/95 backdrop-blur-xl pb-2 mb-2 border-b border-gray-200 dark:border-gray-700/50">
+                <div className="absolute top-full left-0 mt-2 w-32 bg-white border border-gray-200 rounded-xl shadow-2xl animate-in slide-in-from-top-2 duration-200 overflow-hidden z-50">
+                  <div className="max-h-80 overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-gray-300">
+                    <div className="sticky top-0 bg-white pb-2 mb-2 border-b border-gray-100 z-10">
                       <button
                         onClick={clearFiltersAndNotify}
-                        className="text-xs text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors w-full text-left px-2"
+                        className="text-xs font-bold text-red-500 hover:text-red-700 transition-colors w-full text-left px-2 py-1 uppercase tracking-wider"
                       >
-                        Clear All
+                        Clear
                       </button>
                     </div>
+                    {/* LIST TAHUN YANG SUDAH DINAMIS */}
                     {years.map((year) => (
                       <button
                         key={year}
                         onClick={() => handleYearSelect(year)}
-                        className="w-full text-left px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200 no-underline text-sm"
+                        className={`w-full text-left px-3 py-2 rounded-lg transition-all duration-200 text-sm mb-1
+                          ${selectedYear === year 
+                            ? 'bg-purple-50 text-purple-700 font-bold' 
+                            : 'text-gray-700 hover:bg-gray-100 hover:text-black'
+                          }`}
                       >
                         {year}
                       </button>
@@ -251,38 +274,46 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                    setIsGenreDropdownOpen(false);
                    setIsYearDropdownOpen(false);
                 }}
-                className="relative text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium text-base transition-all duration-300 hover:scale-105 no-underline group px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/50"
+                className={`relative font-medium text-base transition-all duration-300 no-underline group px-3 py-2 rounded-lg border
+                  ${isCountryDropdownOpen 
+                    ? 'text-gray-900 bg-white border-gray-200 shadow-sm' 
+                    : 'text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white border-transparent'
+                  }`}
               >
                 <span className="flex items-center">
                   Country
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="ml-1 h-4 w-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className={`ml-1 h-4 w-4 transition-transform ${isCountryDropdownOpen ? 'rotate-180' : ''}`}>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </span>
                 {selectedCountry && (
-                  <span className="ml-2 text-xs px-2 py-1 bg-emerald-100 dark:bg-emerald-600/30 text-emerald-800 dark:text-emerald-300 rounded-full">
-                    {selectedCountry.iso_3166_1}
+                   <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
                   </span>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300"></div>
               </button>
               
               {isCountryDropdownOpen && (
-                <div className="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-gray-800/95 backdrop-blur-xl border border-gray-200 dark:border-gray-700/50 rounded-xl shadow-2xl animate-in slide-in-from-top duration-200">
-                  <div className="max-h-80 overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
-                    <div className="sticky top-0 bg-white dark:bg-gray-800/95 backdrop-blur-xl pb-2 mb-2 border-b border-gray-200 dark:border-gray-700/50">
+                <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-xl shadow-2xl animate-in slide-in-from-top-2 duration-200 overflow-hidden z-50">
+                  <div className="max-h-80 overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-gray-300">
+                    <div className="sticky top-0 bg-white pb-2 mb-2 border-b border-gray-100 z-10">
                       <button
                         onClick={clearFiltersAndNotify}
-                        className="text-xs text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors w-full text-left px-2"
+                        className="text-xs font-bold text-red-500 hover:text-red-700 transition-colors w-full text-left px-2 py-1 uppercase tracking-wider"
                       >
-                        Clear All
+                        Clear
                       </button>
                     </div>
                     {countries.map((country) => (
                       <button
                         key={country.iso_3166_1}
                         onClick={() => handleCountrySelect(country)}
-                        className="w-full text-left px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200 no-underline text-sm"
+                        className={`w-full text-left px-3 py-2 rounded-lg transition-all duration-200 text-sm mb-1 truncate
+                          ${selectedCountry?.iso_3166_1 === country.iso_3166_1 
+                            ? 'bg-emerald-50 text-emerald-700 font-bold' 
+                            : 'text-gray-700 hover:bg-gray-100 hover:text-black'
+                          }`}
                       >
                         {country.english_name}
                       </button>
@@ -292,7 +323,7 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
               )}
             </div>
 
-            {/* Original Navigation Links */}
+            {/* Static Links */}
             {[
               { name: "Now Playing", href: "#now_playing" },
               { name: "Popular", href: "#popular" },
@@ -301,35 +332,30 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
               <a 
                 key={item.name}
                 href={item.href} 
-                // UBAH: Warna link
-                className="relative text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium text-xs transition-all duration-300 hover:scale-105 no-underline group"
-                style={{ animationDelay: `${index * 100}ms` }}
+                className="relative text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium text-xs transition-all duration-300 hover:scale-105 no-underline px-3 py-2"
               >
-                <span className="relative z-10">{item.name}</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300"></div>
+                {item.name}
               </a>
             ))}
           </div>
 
-          {/* Search Bar & Mobile Menu & Dark Mode Toggle */}
+          {/* Search & Theme Toggle */}
           <div className="hidden md:flex items-center space-x-3">
             <form onSubmit={handleSearchSubmit} className="relative">
               <div className={`flex items-center transition-all duration-500 transform ${
                 isSearchFocused ? 'scale-105' : ''
               }`}>
                 <div className="relative flex items-center">
-                  <div className={`absolute inset-0 bg-gradient-to-r from-blue-600/30 to-purple-600/30 rounded-xl transition-all duration-500 ${
-                    isSearchFocused ? 'opacity-100 blur-sm' : 'opacity-0'
-                  }`}></div>
-                  {/* UBAH: Style Input Search */}
                   <input
                     type="text"
-                    placeholder="Discover movies..."
-                    className={`relative w-64 px-4 py-2 pr-10 bg-gray-100 dark:bg-gray-800/60 border rounded-xl text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none transition-all duration-500 text-sm font-light backdrop-blur-sm ${
-                      isSearchFocused 
-                        ? 'border-blue-500/50 bg-white dark:bg-gray-800/80 shadow-xl shadow-blue-500/10 dark:shadow-blue-500/20' 
-                        : 'border-gray-300 dark:border-gray-700/50 hover:border-gray-400 dark:hover:border-gray-600'
-                    }`}
+                    placeholder="Search movies..."
+                    className={`relative w-48 lg:w-64 px-4 py-2 pr-10 rounded-full text-sm transition-all duration-300
+                      bg-white text-gray-900 placeholder-gray-500 border
+                      ${isSearchFocused 
+                        ? 'border-blue-500 shadow-lg ring-2 ring-blue-500/20' 
+                        : 'border-gray-300 hover:border-gray-400'
+                      }
+                    `}
                     value={searchQuery}
                     onChange={handleSearchChange}
                     onFocus={() => setIsSearchFocused(true)}
@@ -337,11 +363,7 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                   />
                   <button
                     type="submit"
-                    className={`absolute right-2 p-2 rounded-lg transition-all duration-500 transform ${
-                      isSearchFocused
-                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg scale-110' 
-                        : 'bg-gray-200 dark:bg-gray-700/50 text-gray-400 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600 hover:text-black dark:hover:text-white hover:scale-105'
-                    }`}
+                    className="absolute right-2 p-1.5 text-gray-400 hover:text-blue-600 transition-colors"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-4 w-4">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -351,38 +373,29 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
               </div>
             </form>
 
-            {/* --- FITUR BARU: TOMBOL TOGGLE THEME DESKTOP --- */}
             <button
                 onClick={toggleTheme}
-                className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-yellow-500 dark:text-blue-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300 shadow-sm border border-gray-200 dark:border-gray-700"
+                className="p-2.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors border border-transparent dark:border-gray-700"
                 aria-label="Toggle Theme"
             >
-                {theme === 'dark' ? (
-                    // Kalau Mode Gelap -> Tampilkan Matahari
-                    <IoMdSunny className="w-5 h-5" />
-                ) : (
-                    // Kalau Mode Terang -> Tampilkan Bulan
-                    <IoMdMoon className="w-5 h-5" />
-                )}
+                {theme === 'dark' ? <IoMdSunny className="w-5 h-5 text-yellow-500" /> : <IoMdMoon className="w-5 h-5" />}
             </button>
           </div>
 
+          {/* Mobile Button */}
           <div className="lg:hidden flex items-center space-x-2">
-            
-            {/* --- FITUR BARU: TOMBOL TOGGLE THEME MOBILE --- */}
             <button
                 onClick={toggleTheme}
-                className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-yellow-500 dark:text-blue-300 border border-gray-200 dark:border-gray-700"
+                className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-yellow-500 dark:text-blue-300 border border-transparent dark:border-gray-700"
             >
                 {theme === 'dark' ? <IoMdSunny className="w-5 h-5" /> : <IoMdMoon className="w-5 h-5" />}
             </button>
 
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="relative text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-all duration-300 group"
+              className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-xl scale-0 group-hover:scale-100 transition-transform duration-300"></div>
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="relative h-6 w-6">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
                 {isMenuOpen ? (
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 ) : (
@@ -393,137 +406,25 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
           </div>
         </div>
 
-        {/* Enhanced Mobile menu */}
+        {/* Mobile menu */}
         {isMenuOpen && (
-          // UBAH: Background Mobile Menu
-          <div className="lg:hidden border-t border-gray-200 dark:border-gray-800/50 backdrop-blur-xl animate-in slide-in-from-top duration-300 bg-white/95 dark:bg-gray-900/95">
-            <div className="px-4 py-6 space-y-3">
-              {/* Mobile Genre Filter */}
-              <div className="relative">
-                <button
-                  onClick={() => setIsGenreDropdownOpen(!isGenreDropdownOpen)}
-                  className="w-full text-left text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium text-base py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-all duration-300 no-underline group"
-                >
-                  <span className="flex items-center justify-between">
-                    Genre
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-4 w-4">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </span>
-                </button>
-                
+          <div className="lg:hidden border-t border-gray-200 dark:border-gray-800 py-4 space-y-4 animate-in slide-in-from-top duration-300 bg-white dark:bg-black">
+             <div className="px-2 space-y-2">
+                <button onClick={() => setIsGenreDropdownOpen(!isGenreDropdownOpen)} className="w-full text-left px-4 py-2 text-gray-900 dark:text-white font-medium bg-gray-100 dark:bg-gray-900 rounded-lg">Browse Genre</button>
                 {isGenreDropdownOpen && (
-                  <div className="mt-2 bg-gray-100 dark:bg-gray-800/95 backdrop-blur-xl border border-gray-200 dark:border-gray-700/50 rounded-xl p-2 max-h-60 overflow-y-auto">
-                    {genres.map((genre) => (
-                      <button
-                        key={genre.id}
-                        onClick={() => handleGenreSelect(genre)}
-                        className="w-full text-left px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200 no-underline text-sm"
-                      >
-                        {genre.name}
-                      </button>
-                    ))}
-                  </div>
+                    <div className="pl-4 pr-2 grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
+                        {genres.map(g => (
+                            <button key={g.id} onClick={() => { handleGenreSelect(g); setIsMenuOpen(false); }} className="text-left text-sm text-gray-600 dark:text-gray-400 py-1 hover:text-blue-500">{g.name}</button>
+                        ))}
+                    </div>
                 )}
-              </div>
-
-              {/* Mobile Year Filter */}
-              <div className="relative">
-                <button
-                  onClick={() => setIsYearDropdownOpen(!isYearDropdownOpen)}
-                  className="w-full text-left text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium text-base py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-all duration-300 no-underline group"
-                >
-                  <span className="flex items-center justify-between">
-                    Year
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-4 w-4">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </span>
-                </button>
-                
-                {isYearDropdownOpen && (
-                  <div className="mt-2 bg-gray-100 dark:bg-gray-800/95 backdrop-blur-xl border border-gray-200 dark:border-gray-700/50 rounded-xl p-2 max-h-60 overflow-y-auto">
-                    {years.map((year) => (
-                      <button
-                        key={year}
-                        onClick={() => handleYearSelect(year)}
-                        className="w-full text-left px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200 no-underline text-sm"
-                      >
-                        {year}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Mobile Country Filter */}
-              <div className="relative">
-                <button
-                  onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
-                  className="w-full text-left text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium text-base py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-all duration-300 no-underline group"
-                >
-                  <span className="flex items-center justify-between">
-                    Country
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-4 w-4">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </span>
-                </button>
-                
-                {isCountryDropdownOpen && (
-                  <div className="mt-2 bg-gray-100 dark:bg-gray-800/95 backdrop-blur-xl border border-gray-200 dark:border-gray-700/50 rounded-xl p-2 max-h-60 overflow-y-auto">
-                    {countries.map((country) => (
-                      <button
-                        key={country.iso_3166_1}
-                        onClick={() => handleCountrySelect(country)}
-                        className="w-full text-left px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200 no-underline text-sm"
-                      >
-                        {country.english_name}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Original Navigation Links */}
-              {[
-                { name: "Now Playing", href: "#now_playing" },
-                { name: "Popular", href: "#popular" },
-                { name: "Top Rated", href: "#top_rated" }
-              ].map((item, index) => (
-                <a 
-                  key={item.name}
-                  href={item.href} 
-                  className="block text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium text-base py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-all duration-300 no-underline group"
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  <span className="relative z-10">{item.name}</span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300"></div>
-                </a>
-              ))}
-              
-              {/* Mobile Search */}
-              <form onSubmit={handleSearchSubmit} className="pt-3">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-xl blur-sm"></div>
-                  <input
-                    type="text"
-                    placeholder="Discover movies..."
-                    className="relative w-full px-4 py-2.5 pr-10 bg-gray-100 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700/50 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:bg-white dark:focus:bg-gray-800/80 transition-all duration-300 text-sm font-light backdrop-blur-sm"
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                  />
-                  <button
-                    type="submit"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-all duration-300"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-4 w-4">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                  </button>
-                </div>
-              </form>
-            </div>
+             </div>
+             
+             <div className="px-2 grid grid-cols-3 gap-2">
+                <a href="#now_playing" className="text-center px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg text-sm font-medium" onClick={() => setIsMenuOpen(false)}>Now Playing</a>
+                <a href="#popular" className="text-center px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-lg text-sm font-medium" onClick={() => setIsMenuOpen(false)}>Popular</a>
+                <a href="#top_rated" className="text-center px-3 py-2 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 rounded-lg text-sm font-medium" onClick={() => setIsMenuOpen(false)}>Top Rated</a>
+             </div>
           </div>
         )}
       </div>
