@@ -25,10 +25,10 @@ const Footer = () => {
             
             {/* Social Icons */}
             <div className="flex space-x-4 pt-2">
-              <a href="#" className="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"><FaFacebook size={20} /></a>
-              <a href="#" className="text-gray-400 hover:text-sky-500 dark:hover:text-sky-400 transition-colors"><FaTwitter size={20} /></a>
-              <a href="#" className="text-gray-400 hover:text-pink-600 dark:hover:text-pink-500 transition-colors"><FaInstagram size={20} /></a>
-              <a href="#" className="text-gray-400 hover:text-red-600 dark:hover:text-red-500 transition-colors"><FaYoutube size={20} /></a>
+              <a href="/" className="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"><FaFacebook size={20} /></a>
+              <a href="/" className="text-gray-400 hover:text-sky-500 dark:hover:text-sky-400 transition-colors"><FaTwitter size={20} /></a>
+              <a href="/" className="text-gray-400 hover:text-pink-600 dark:hover:text-pink-500 transition-colors"><FaInstagram size={20} /></a>
+              <a href="/" className="text-gray-400 hover:text-red-600 dark:hover:text-red-500 transition-colors"><FaYoutube size={20} /></a>
             </div>
           </div>
 
@@ -74,10 +74,10 @@ const Footer = () => {
           <div>
             <h3 className="text-gray-900 dark:text-white font-bold mb-6 text-lg transition-colors">Support</h3>
             <ul className="space-y-4 text-sm">
-              <li><a href="#" className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors no-underline">Help Center</a></li>
-              <li><a href="#" className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors no-underline">Terms of Service</a></li>
-              <li><a href="#" className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors no-underline">Privacy Policy</a></li>
-              <li><a href="#" className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors no-underline">Contact Us</a></li>
+              <li><a href="/" className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors no-underline">Help Center</a></li>
+              <li><a href="/" className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors no-underline">Terms of Service</a></li>
+              <li><a href="/" className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors no-underline">Privacy Policy</a></li>
+              <li><a href="/" className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors no-underline">Contact Us</a></li>
             </ul>
           </div>
         </div>
