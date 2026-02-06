@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { getMovieGenres, getCountries } from "../services/api";
 import { useTheme } from "../context/ThemeContext";
-import { IoMdMoon, IoMdSunny } from "react-icons/io";
+import { IoMdMoon, IoMdSunny, IoMdSearch } from "react-icons/io"; // Tambah Icon Search
 
 export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountryFilter, onReset, activeGenre, activeYear, activeCountry }) {
   const { theme, toggleTheme } = useTheme();
@@ -22,16 +22,17 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
   const [selectedGenre, setSelectedGenre] = useState(null);
   const [selectedYear, setSelectedYear] = useState(null);
 
+  // --- STATE PENCARIAN DALAM DROPDOWN ---
+  const [genreSearch, setGenreSearch] = useState("");
+  const [yearSearch, setYearSearch] = useState("");
+  const [countrySearch, setCountrySearch] = useState("");
+
   const dropdownRef = useRef(null);
 
-  // --- PERBAIKAN LOGIC TAHUN ---
-  // Kita ambil tahun sekarang secara otomatis (2026)
   const currentYear = new Date().getFullYear();
-  // Kita buat array mundur 50 tahun ke belakang, DIMULAI DARI currentYear + 1 (2027)
-  // Jadi listnya: 2027, 2026, 2025, 2024, ... dst
   const years = Array.from({ length: 50 }, (_, i) => currentYear + 1 - i);
 
-  // --- LOGIC CLICK OUTSIDE ---
+  // --- LOGIC CLICK OUTSIDE & RESET SEARCH ---
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -46,6 +47,13 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  // Reset search text saat dropdown ditutup (Optional, biar bersih pas dibuka lagi)
+  useEffect(() => {
+    if (!isGenreDropdownOpen) setGenreSearch("");
+    if (!isYearDropdownOpen) setYearSearch("");
+    if (!isCountryDropdownOpen) setCountrySearch("");
+  }, [isGenreDropdownOpen, isYearDropdownOpen, isCountryDropdownOpen]);
 
   useEffect(() => {
     setSelectedGenre(activeGenre);
@@ -125,6 +133,11 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
     setIsCountryDropdownOpen(false);
   };
 
+  // --- FILTERING LOGIC ---
+  const filteredGenres = genres.filter(g => g.name.toLowerCase().includes(genreSearch.toLowerCase()));
+  const filteredYears = years.filter(y => y.toString().includes(yearSearch));
+  const filteredCountries = countries.filter(c => c.english_name.toLowerCase().includes(countrySearch.toLowerCase()));
+
   return (
     <nav className={`sticky top-0 z-50 transition-all duration-500 ${
       isScrolled 
@@ -180,29 +193,47 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
               </button>
               
               {isGenreDropdownOpen && (
-                <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-xl shadow-2xl animate-in slide-in-from-top-2 duration-200 overflow-hidden z-50">
+                <div className="absolute top-full left-0 mt-2 w-72 bg-white border border-gray-200 rounded-xl shadow-2xl animate-in slide-in-from-top-2 duration-200 overflow-hidden z-50">
                   <div className="max-h-80 overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-gray-300">
-                    <div className="sticky top-0 bg-white pb-2 mb-2 border-b border-gray-100 z-10">
+                    <div className="sticky top-0 bg-white pb-2 mb-2 border-b border-gray-100 z-10 space-y-2">
                       <button
                         onClick={clearFiltersAndNotify}
-                        className="text-xs font-bold text-red-500 hover:text-red-700 transition-colors w-full text-left px-2 py-1 uppercase tracking-wider"
+                        className="text-xs font-bold text-red-500 hover:text-red-700 transition-colors w-full text-left px-2 uppercase tracking-wider"
                       >
                         Clear All Filters
                       </button>
+                      {/* INPUT SEARCH GENRE */}
+                      <div className="relative px-2">
+                        <input 
+                            type="text" 
+                            placeholder="Cari genre..." 
+                            value={genreSearch}
+                            onChange={(e) => setGenreSearch(e.target.value)}
+                            className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-700 placeholder-gray-400"
+                        />
+                         <IoMdSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                      </div>
                     </div>
-                    {genres.map((genre) => (
-                      <button
-                        key={genre.id}
-                        onClick={() => handleGenreSelect(genre)}
-                        className={`w-full text-left px-3 py-2.5 rounded-lg transition-all duration-200 text-sm mb-1
-                          ${selectedGenre?.id === genre.id 
-                            ? 'bg-blue-50 text-blue-700 font-bold' 
-                            : 'text-gray-700 hover:bg-gray-100 hover:text-black'
-                          }`}
-                      >
-                        {genre.name}
-                      </button>
-                    ))}
+                    
+                    {filteredGenres.length > 0 ? (
+                        filteredGenres.map((genre) => (
+                        <button
+                            key={genre.id}
+                            onClick={() => handleGenreSelect(genre)}
+                            className={`w-full text-left px-3 py-2.5 rounded-lg transition-all duration-200 text-sm mb-1
+                            ${selectedGenre?.id === genre.id 
+                                ? 'bg-blue-50 text-blue-700 font-bold' 
+                                : 'text-gray-700 hover:bg-gray-100 hover:text-black'
+                            }`}
+                        >
+                            {genre.name}
+                        </button>
+                        ))
+                    ) : (
+                        <div className="px-3 py-4 text-center text-sm text-gray-500">
+                            Genre tidak ditemukan
+                        </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -237,30 +268,47 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
               </button>
               
               {isYearDropdownOpen && (
-                <div className="absolute top-full left-0 mt-2 w-32 bg-white border border-gray-200 rounded-xl shadow-2xl animate-in slide-in-from-top-2 duration-200 overflow-hidden z-50">
+                <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-2xl animate-in slide-in-from-top-2 duration-200 overflow-hidden z-50">
                   <div className="max-h-80 overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-gray-300">
-                    <div className="sticky top-0 bg-white pb-2 mb-2 border-b border-gray-100 z-10">
+                    <div className="sticky top-0 bg-white pb-2 mb-2 border-b border-gray-100 z-10 space-y-2">
                       <button
                         onClick={clearFiltersAndNotify}
-                        className="text-xs font-bold text-red-500 hover:text-red-700 transition-colors w-full text-left px-2 py-1 uppercase tracking-wider"
+                        className="text-xs font-bold text-red-500 hover:text-red-700 transition-colors w-full text-left px-2 uppercase tracking-wider"
                       >
                         Clear
                       </button>
+                      {/* INPUT SEARCH YEAR */}
+                      <div className="relative px-2">
+                        <input 
+                            type="number" 
+                            placeholder="Cari tahun..." 
+                            value={yearSearch}
+                            onChange={(e) => setYearSearch(e.target.value)}
+                            className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-gray-700 placeholder-gray-400 appearance-none"
+                        />
+                         <IoMdSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                      </div>
                     </div>
-                    {/* LIST TAHUN YANG SUDAH DINAMIS */}
-                    {years.map((year) => (
-                      <button
-                        key={year}
-                        onClick={() => handleYearSelect(year)}
-                        className={`w-full text-left px-3 py-2 rounded-lg transition-all duration-200 text-sm mb-1
-                          ${selectedYear === year 
-                            ? 'bg-purple-50 text-purple-700 font-bold' 
-                            : 'text-gray-700 hover:bg-gray-100 hover:text-black'
-                          }`}
-                      >
-                        {year}
-                      </button>
-                    ))}
+
+                    {filteredYears.length > 0 ? (
+                        filteredYears.map((year) => (
+                        <button
+                            key={year}
+                            onClick={() => handleYearSelect(year)}
+                            className={`w-full text-left px-3 py-2 rounded-lg transition-all duration-200 text-sm mb-1
+                            ${selectedYear === year 
+                                ? 'bg-purple-50 text-purple-700 font-bold' 
+                                : 'text-gray-700 hover:bg-gray-100 hover:text-black'
+                            }`}
+                        >
+                            {year}
+                        </button>
+                        ))
+                    ) : (
+                        <div className="px-3 py-4 text-center text-sm text-gray-500">
+                            Tahun tidak ditemukan
+                        </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -295,29 +343,47 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
               </button>
               
               {isCountryDropdownOpen && (
-                <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-xl shadow-2xl animate-in slide-in-from-top-2 duration-200 overflow-hidden z-50">
+                <div className="absolute top-full left-0 mt-2 w-72 bg-white border border-gray-200 rounded-xl shadow-2xl animate-in slide-in-from-top-2 duration-200 overflow-hidden z-50">
                   <div className="max-h-80 overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-gray-300">
-                    <div className="sticky top-0 bg-white pb-2 mb-2 border-b border-gray-100 z-10">
+                    <div className="sticky top-0 bg-white pb-2 mb-2 border-b border-gray-100 z-10 space-y-2">
                       <button
                         onClick={clearFiltersAndNotify}
-                        className="text-xs font-bold text-red-500 hover:text-red-700 transition-colors w-full text-left px-2 py-1 uppercase tracking-wider"
+                        className="text-xs font-bold text-red-500 hover:text-red-700 transition-colors w-full text-left px-2 uppercase tracking-wider"
                       >
                         Clear
                       </button>
+                      {/* INPUT SEARCH COUNTRY */}
+                      <div className="relative px-2">
+                        <input 
+                            type="text" 
+                            placeholder="Cari negara..." 
+                            value={countrySearch}
+                            onChange={(e) => setCountrySearch(e.target.value)}
+                            className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-gray-700 placeholder-gray-400"
+                        />
+                         <IoMdSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                      </div>
                     </div>
-                    {countries.map((country) => (
-                      <button
-                        key={country.iso_3166_1}
-                        onClick={() => handleCountrySelect(country)}
-                        className={`w-full text-left px-3 py-2 rounded-lg transition-all duration-200 text-sm mb-1 truncate
-                          ${selectedCountry?.iso_3166_1 === country.iso_3166_1 
-                            ? 'bg-emerald-50 text-emerald-700 font-bold' 
-                            : 'text-gray-700 hover:bg-gray-100 hover:text-black'
-                          }`}
-                      >
-                        {country.english_name}
-                      </button>
-                    ))}
+                    
+                    {filteredCountries.length > 0 ? (
+                        filteredCountries.map((country) => (
+                        <button
+                            key={country.iso_3166_1}
+                            onClick={() => handleCountrySelect(country)}
+                            className={`w-full text-left px-3 py-2 rounded-lg transition-all duration-200 text-sm mb-1 truncate
+                            ${selectedCountry?.iso_3166_1 === country.iso_3166_1 
+                                ? 'bg-emerald-50 text-emerald-700 font-bold' 
+                                : 'text-gray-700 hover:bg-gray-100 hover:text-black'
+                            }`}
+                        >
+                            {country.english_name}
+                        </button>
+                        ))
+                    ) : (
+                        <div className="px-3 py-4 text-center text-sm text-gray-500">
+                            Negara tidak ditemukan
+                        </div>
+                    )}
                   </div>
                 </div>
               )}
