@@ -5,10 +5,9 @@ import MovieCarousel from "../components/Carousel";
 import MovieList from "../components/MovieList";
 import { IoIosArrowUp, IoMdArrowRoundUp, IoMdArrowRoundDown } from "react-icons/io";
 import Footer from "../components/Footer";
-import { useTranslation } from "react-i18next"; // 1. IMPORT
+import { useTranslation } from "react-i18next"; 
 
 const Home = () => {
-  // 2. USE TRANSLATION HOOK
   const { t } = useTranslation();
 
   const [showScrollToTop, setShowScrollToTop] = useState(false);
@@ -84,6 +83,7 @@ const Home = () => {
 
   useEffect(() => {
     const loadMovies = async () => {
+      // Logic ini menggunakan nowPlayingMovies.length
       if (nowPlayingMovies.length > 0) return;
 
       try {
@@ -111,7 +111,9 @@ const Home = () => {
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    
+    // PERBAIKAN: Tambahkan dependency ke array
+  }, [nowPlayingMovies.length]); 
 
   const getActiveDataSource = () => {
     if (currentView === 'search') return searchResults;
@@ -304,7 +306,6 @@ const Home = () => {
 
   const getFilterTitle = () => {
     let title = "Movies"; // Default
-    // Logic Translate Title dinamis agak tricky, kita simplify:
     if (activeCountry) title = `${t('home.movies_from')} ${activeCountry.english_name}`;
     if (activeGenre) title = `${activeGenre.name} ${title === "Movies" ? "" : title}`;
     if (activeYear) title += ` (${activeYear})`;
@@ -372,7 +373,6 @@ const Home = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-screen">
             <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
               <h2 className="text-2xl font-bold">
-                {/* TRANSLATE TITLE */}
                 {currentView === 'search' ? t('home.search_results') : getFilterTitle()}
                 <span className="text-sm font-normal text-gray-400 ml-2">({getActiveDataSource().length} {t('home.items')})</span>
               </h2>
@@ -392,7 +392,6 @@ const Home = () => {
                 >
                   <span className="text-gray-400">{t('home.order')}</span>
                   <span className={`font-bold ${sortOrder === 'desc' ? 'text-green-400' : 'text-orange-400'}`}>
-                    {/* TRANSLATE ORDER LOGIC */}
                     {sortBy === 'release_date' 
                         ? (sortOrder === 'desc' ? t('home.newest') : t('home.oldest'))
                         : (sortOrder === 'desc' ? t('home.high_low') : t('home.low_high'))
