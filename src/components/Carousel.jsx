@@ -42,17 +42,21 @@ const MovieCarousel = ({ movies }) => {
           className="w-full h-full object-cover object-top transition-transform duration-1000 ease-in-out group-hover:scale-105"
         />
         
-        {/* PERBAIKAN GRADASI DI SINI */}
-        {/* 1. Gradasi Bawah-ke-Atas: Menggunakan 'from-black' untuk transisi mulus ke section bawah,
-             dan 'via-black/40' agar gradasinya lebih halus dan panjang. */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+        {/* --- PERBAIKAN GRADASI (THE FIX) --- */}
         
-        {/* 2. Gradasi Kiri-ke-Kanan: Menggunakan 'from-black/90' agar teks terbaca jelas,
-             tanpa memberikan rona kebiruan. */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/30 to-transparent" />
+        {/* 1. LAYER PROTEKSI TEKS (Gelap di belakang tulisan) */}
+        {/* <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/20 to-transparent" /> */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/10 to-transparent" />
+        
+        {/* 2. LAYER BLENDING SMOOTH (Kunci agar tidak patah)
+               - Menggunakan h-1/2 (setengah layar) agar pudarnya pelan-pelan.
+               - Menambahkan transisi 'via' agar tidak mendadak putih/hitam.
+        */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-gray-50 via-gray-50/20 to-transparent dark:from-black dark:via-black/20" />
       </div>
 
-      {/* Konten Text */}
+      {/* Konten Text (Menggunakan Style Lama yang Proporsional) */}
       <div className="relative h-full flex items-center">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full mt-16 md:mt-0">
           <div className="max-w-3xl animate-in slide-in-from-left duration-700 fade-in">
@@ -64,10 +68,10 @@ const MovieCarousel = ({ movies }) => {
             </Link>
             
             <div className="flex items-center space-x-4 text-gray-200 mb-6 font-medium text-sm md:text-lg drop-shadow-md">
-              <span className="bg-white/10 px-2 py-1 rounded border border-white/20">
+              <span className="bg-white/10 px-2 py-1 rounded border border-white/20 backdrop-blur-sm">
                 {currentMovie.release_date?.split('-')[0]}
               </span>
-              <span className="flex items-center text-yellow-400 font-bold">
+              <span className="flex items-center text-yellow-400 font-bold bg-black/20 px-2 py-1 rounded backdrop-blur-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 mr-1">
                   <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clipRule="evenodd" />
                 </svg>
@@ -75,7 +79,7 @@ const MovieCarousel = ({ movies }) => {
               </span>
             </div>
 
-            <p className="text-gray-300 text-sm md:text-lg line-clamp-3 md:line-clamp-4 mb-8 leading-relaxed max-w-xl drop-shadow-md">
+            <p className="text-gray-100 text-sm md:text-lg line-clamp-3 md:line-clamp-4 mb-8 leading-relaxed max-w-xl drop-shadow-md font-light">
               {currentMovie.overview || "Description not available for this movie."}
             </p>
 
@@ -104,7 +108,7 @@ const MovieCarousel = ({ movies }) => {
       {/* Tombol Navigasi */}
       <button
         onClick={goToPrevious}
-        className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-black/30 hover:bg-blue-600 text-white/70 hover:text-white rounded-full transition-all backdrop-blur-sm border border-white/10 group-hover:bg-black/50"
+        className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-black/30 hover:bg-blue-600 text-white/70 hover:text-white rounded-full transition-all backdrop-blur-sm border border-white/10 group-hover:bg-black/50 z-20"
         aria-label="Previous slide"
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="h-6 w-6">
@@ -114,7 +118,7 @@ const MovieCarousel = ({ movies }) => {
 
       <button
         onClick={goToNext}
-        className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-black/30 hover:bg-blue-600 text-white/70 hover:text-white rounded-full transition-all backdrop-blur-sm border border-white/10 group-hover:bg-black/50"
+        className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-black/30 hover:bg-blue-600 text-white/70 hover:text-white rounded-full transition-all backdrop-blur-sm border border-white/10 group-hover:bg-black/50 z-20"
         aria-label="Next slide"
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="h-6 w-6">
@@ -130,7 +134,7 @@ const MovieCarousel = ({ movies }) => {
             onClick={() => setCurrentIndex(index)}
             className={`h-1.5 rounded-full transition-all duration-300 ${
               index === currentIndex 
-                ? 'bg-blue-500 w-8' 
+                ? 'bg-blue-500 w-8 shadow-[0_0_10px_rgba(59,130,246,0.5)]' 
                 : 'bg-white/30 w-2 hover:bg-white/50'
             }`}
             aria-label={`Go to slide ${index + 1}`}

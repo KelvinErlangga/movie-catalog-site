@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 import { getMovieDetails, searchMovie, getMovieVideos, getMovieCredits } from "../services/api";
 import NavBar from "./Navbar";
-import MovieList from "../components/MovieList";
+import MovieList from "./MovieList";
 import Footer from "./Footer";
 
 const Detail = () => {
@@ -55,17 +55,12 @@ const Detail = () => {
     window.scrollTo(0, 0);
   }, [id]);
 
-  // --- BAGIAN INI YANG DIPERBAIKI ---
   const search = async (q) => {
     if (q.length > 1) {
-      // searchMovie mengembalikan Array, bukan Object dengan properti .results
       const results = await searchMovie(q);
-      
-      // HAPUS .results DISINI
       setSearchResults(results); 
     }
   };
-  // ----------------------------------
 
   const handleGenreRedirect = (genre) => {
     sessionStorage.setItem('activeGenre', JSON.stringify(genre));
@@ -120,7 +115,6 @@ const Detail = () => {
   }
 
   return (
-    // <div className="min-h-screen bg-black text-white flex flex-col relative">
     <div className="min-h-screen transition-colors duration-300 bg-gray-50 text-gray-900 dark:bg-black dark:text-white flex flex-col relative">
       <NavBar 
         onSearch={search}
@@ -177,7 +171,14 @@ const Detail = () => {
                 alt={movieDetail.title}
                 className="w-full h-full object-cover object-top"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
+              
+              {/* --- PERBAIKAN GRADASI: DOUBLE LAYER --- */}
+              {/* Layer 1: Hitam di bawah AGAR TEKS SELALU TERBACA (untuk light & dark mode) */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+              
+              {/* Layer 2: Transisi halus ke warna background halaman (Gray-50 untuk Light, Black untuk Dark) */}
+              {/* Hanya muncul di bagian paling bawah (h-32) supaya tidak menutup gambar */}
+              <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-gray-50 dark:from-black to-transparent" />
             </div>
 
             {/* MAIN CONTENT */}
@@ -195,37 +196,38 @@ const Detail = () => {
                         : "/no_image_available.jpg"
                       }
                       alt={movieDetail.title}
-                      className="w-48 md:w-80 rounded-xl shadow-2xl mx-auto md:mx-0 border-4 border-gray-800/50"
+                      className="w-48 md:w-80 rounded-xl shadow-2xl mx-auto md:mx-0 border-4 border-white dark:border-gray-800"
                     />
                   </div>
 
                   {/* Info Text */}
                   <div className="flex-1 text-center md:text-left pt-4 md:pt-12">
-                    <h1 className="text-3xl md:text-5xl font-extrabold mb-2 text-white drop-shadow-lg">
+                    {/* Judul selalu putih & pakai shadow kuat agar kontras di light mode */}
+                    <h1 className="text-3xl md:text-5xl font-extrabold mb-2 text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                       {movieDetail.original_title || movieDetail.title}
                     </h1>
                     
                     {movieDetail.tagline && (
-                      <p className="text-gray-300 text-lg mb-4 italic font-light">
+                      <p className="text-gray-200 text-lg mb-4 italic font-light drop-shadow-md">
                         "{movieDetail.tagline}"
                       </p>
                     )}
 
                     <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-6">
-                      <div className="flex items-center bg-gray-800/60 px-3 py-1.5 rounded-lg border border-gray-700 backdrop-blur-md">
+                      <div className="flex items-center bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/20 shadow-lg">
                         <span className="text-yellow-400 mr-2 text-lg">★</span>
                         <span className="font-bold text-white text-lg">{movieDetail.vote_average?.toFixed(1) || 'N/A'}</span>
-                        <span className="text-gray-400 ml-1 text-sm">({movieDetail.vote_count || 0})</span>
+                        <span className="text-gray-300 ml-1 text-sm">({movieDetail.vote_count || 0})</span>
                       </div>
                       
                       {movieDetail.runtime && (
-                        <span className="text-gray-200 bg-gray-800/60 px-3 py-1.5 rounded-lg border border-gray-700 backdrop-blur-md font-medium">
+                        <span className="text-white bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/20 font-medium shadow-lg">
                           {Math.floor(movieDetail.runtime / 60)}h {movieDetail.runtime % 60}m
                         </span>
                       )}
                       
                       {movieDetail.release_date && (
-                        <span className="text-gray-200 bg-gray-800/60 px-3 py-1.5 rounded-lg border border-gray-700 backdrop-blur-md font-medium">
+                        <span className="text-white bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/20 font-medium shadow-lg">
                           {new Date(movieDetail.release_date).getFullYear()}
                         </span>
                       )}
@@ -236,7 +238,7 @@ const Detail = () => {
                         {movieDetail.genres.map((genre) => (
                           <span
                             key={genre.id}
-                            className="px-4 py-1.5 bg-blue-600/10 hover:bg-blue-600/20 text-blue-300 rounded-full text-sm border border-blue-500/20 transition-colors"
+                            className="px-4 py-1.5 bg-blue-600 text-white rounded-full text-sm shadow-lg border border-blue-400/30"
                           >
                             {genre.name}
                           </span>
@@ -245,8 +247,9 @@ const Detail = () => {
                     )}
 
                     <div className="mb-8 max-w-4xl">
-                      <h2 className="text-xl font-bold mb-3 text-white border-l-4 border-blue-600 pl-4">Overview</h2>
-                      <p className="text-gray-300 leading-relaxed text-lg text-justify md:text-left">
+                      <h2 className="text-xl font-bold mb-3 text-gray-900 dark:text-white border-l-4 border-blue-600 pl-4 transition-colors">Overview</h2>
+                      
+                      <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-lg text-justify md:text-left transition-colors">
                         {movieDetail.overview || "No synopsis available."}
                       </p>
                     </div>
@@ -292,12 +295,16 @@ const Detail = () => {
                 {/* CAST SECTION */}
                 {credits && credits.cast && credits.cast.length > 0 && (
                   <div className="mb-12">
-                    <h2 className="text-xl font-bold mb-6 text-white border-l-4 border-blue-600 pl-4 text-left">Top Cast</h2>
+                    <h2 className="text-xl font-bold mb-6 text-gray-900 dark:text-white border-l-4 border-blue-600 pl-4 text-left transition-colors">Top Cast</h2>
                     
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
                       {credits.cast.slice(0, 12).map((actor) => (
-                        <div key={actor.id} className="bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:scale-105 transition-transform duration-300 border border-gray-700/50">
-                          <div className="aspect-[2/3] overflow-hidden bg-gray-700">
+                        <div 
+                           key={actor.id} 
+                           // PERBAIKAN: Gunakan 'dark:!bg-gray-800' (Tanda Seru) untuk memaksa warna gelap
+                           className="bg-white dark:!bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:scale-105 transition-transform duration-300 border border-gray-200 dark:border-gray-700"
+                        >
+                          <div className="aspect-[2/3] overflow-hidden bg-gray-200 dark:bg-gray-700">
                             <img
                               src={actor.profile_path 
                                 ? `${profileBaseUrl}${actor.profile_path}` 
@@ -309,8 +316,8 @@ const Detail = () => {
                             />
                           </div>
                           <div className="p-3 text-left">
-                            <h3 className="font-bold text-white text-sm truncate">{actor.name}</h3>
-                            <p className="text-gray-400 text-xs truncate mt-1">{actor.character}</p>
+                            <h3 className="font-bold text-gray-900 dark:text-white text-sm truncate transition-colors">{actor.name}</h3>
+                            <p className="text-gray-500 dark:text-gray-400 text-xs truncate mt-1 transition-colors">{actor.character}</p>
                           </div>
                         </div>
                       ))}
@@ -322,22 +329,24 @@ const Detail = () => {
                 {movieDetail.production_companies && movieDetail.production_companies.length > 0 && (
                   <div className="mt-8">
                     <div className="flex items-center mb-6">
-                      <h2 className="text-xl font-bold text-white mr-4">Production Companies</h2>
-                      <div className="h-px bg-gray-800 flex-grow"></div>
+                      <h2 className="text-xl font-bold text-gray-900 dark:text-white mr-4 transition-colors">Production Companies</h2>
+                      <div className="h-px bg-gray-300 dark:bg-gray-800 flex-grow"></div>
                     </div>
                     
-                    <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-8 border border-gray-700/50 shadow-2xl">
+                    {/* PERBAIKAN: Gunakan 'dark:!bg-gray-800' (Tanda Seru) disini juga */}
+                    <div className="bg-white dark:!bg-gray-800 rounded-2xl p-8 border border-gray-200 dark:border-gray-700 shadow-xl transition-colors">
                       <div className="flex flex-wrap justify-center md:justify-start gap-12 items-center">
                         {movieDetail.production_companies
                           .filter(company => company.logo_path)
                           .map((company) => (
-                            <div key={company.id} className="group relative flex flex-col items-center justify-center p-4 rounded-xl transition-all duration-300 hover:bg-white/5">
+                            <div key={company.id} className="group relative flex flex-col items-center justify-center p-4 rounded-xl transition-all duration-300 hover:bg-gray-100 dark:hover:bg-white/5">
                               <img
                                 src={`https://image.tmdb.org/t/p/original${company.logo_path}`}
                                 alt={company.name}
-                                className="h-10 md:h-16 w-auto object-contain filter brightness-0 invert opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300"
+                                // Logo di-invert (jadi putih) saat dark mode. Karena background sekarang dipaksa gelap (!bg-gray-800), logo putih akan terlihat.
+                                className="h-10 md:h-16 w-auto object-contain dark:filter dark:brightness-0 dark:invert opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300"
                               />
-                              <span className="absolute -bottom-2 opacity-0 group-hover:opacity-100 text-xs text-gray-400 transition-opacity duration-300 mt-2 whitespace-nowrap">
+                              <span className="absolute -bottom-2 opacity-0 group-hover:opacity-100 text-xs text-gray-500 dark:text-gray-400 transition-opacity duration-300 mt-2 whitespace-nowrap">
                                 {company.name}
                               </span>
                             </div>

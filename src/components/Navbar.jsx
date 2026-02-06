@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import { getMovieGenres, getCountries } from "../services/api";
 import { useTheme } from "../context/ThemeContext";
-import { IoMdMoon, IoMdSunny, IoMdSearch } from "react-icons/io"; // Tambah Icon Search
+import { IoMdMoon, IoMdSunny, IoMdSearch } from "react-icons/io";
+import { useTranslation } from "react-i18next"; // 1. IMPORT HOOK
 
 export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountryFilter, onReset, activeGenre, activeYear, activeCountry }) {
   const { theme, toggleTheme } = useTheme();
   
+  // 2. INISIALISASI TRANSLATION
+  const { t, i18n } = useTranslation(); 
+
   const [searchQuery, setSearchQuery] = useState("");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -22,7 +26,6 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
   const [selectedGenre, setSelectedGenre] = useState(null);
   const [selectedYear, setSelectedYear] = useState(null);
 
-  // --- STATE PENCARIAN DALAM DROPDOWN ---
   const [genreSearch, setGenreSearch] = useState("");
   const [yearSearch, setYearSearch] = useState("");
   const [countrySearch, setCountrySearch] = useState("");
@@ -32,7 +35,12 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 50 }, (_, i) => currentYear + 1 - i);
 
-  // --- LOGIC CLICK OUTSIDE & RESET SEARCH ---
+  // 3. FUNGSI GANTI BAHASA
+  const toggleLanguage = () => {
+    const newLang = i18n.language === 'en' ? 'id' : 'en';
+    i18n.changeLanguage(newLang);
+  };
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -48,7 +56,6 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
     };
   }, []);
 
-  // Reset search text saat dropdown ditutup (Optional, biar bersih pas dibuka lagi)
   useEffect(() => {
     if (!isGenreDropdownOpen) setGenreSearch("");
     if (!isYearDropdownOpen) setYearSearch("");
@@ -133,7 +140,6 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
     setIsCountryDropdownOpen(false);
   };
 
-  // --- FILTERING LOGIC ---
   const filteredGenres = genres.filter(g => g.name.toLowerCase().includes(genreSearch.toLowerCase()));
   const filteredYears = years.filter(y => y.toString().includes(yearSearch));
   const filteredCountries = countries.filter(c => c.english_name.toLowerCase().includes(countrySearch.toLowerCase()));
@@ -179,7 +185,8 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                   }`}
               >
                 <span className="flex items-center">
-                  Genre
+                  {/* GANTI JADI TRANSLATE */}
+                  {t('navbar.genre')}
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className={`ml-1 h-4 w-4 transition-transform ${isGenreDropdownOpen ? 'rotate-180' : ''}`}>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
@@ -200,13 +207,13 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                         onClick={clearFiltersAndNotify}
                         className="text-xs font-bold text-red-500 hover:text-red-700 transition-colors w-full text-left px-2 uppercase tracking-wider"
                       >
-                        Clear All Filters
+                         {/* GANTI JADI TRANSLATE */}
+                        {t('navbar.clear_filters')}
                       </button>
-                      {/* INPUT SEARCH GENRE */}
                       <div className="relative px-2">
                         <input 
                             type="text" 
-                            placeholder="Cari genre..." 
+                            placeholder={t('navbar.genre_search')} // Translate placeholder
                             value={genreSearch}
                             onChange={(e) => setGenreSearch(e.target.value)}
                             className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-700 placeholder-gray-400"
@@ -231,7 +238,8 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                         ))
                     ) : (
                         <div className="px-3 py-4 text-center text-sm text-gray-500">
-                            Genre tidak ditemukan
+                           {/* GANTI JADI TRANSLATE */}
+                           Genre {t('navbar.not_found')}
                         </div>
                     )}
                   </div>
@@ -254,7 +262,8 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                   }`}
               >
                 <span className="flex items-center">
-                  Year
+                   {/* GANTI JADI TRANSLATE */}
+                  {t('navbar.year')}
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className={`ml-1 h-4 w-4 transition-transform ${isYearDropdownOpen ? 'rotate-180' : ''}`}>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
@@ -275,13 +284,12 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                         onClick={clearFiltersAndNotify}
                         className="text-xs font-bold text-red-500 hover:text-red-700 transition-colors w-full text-left px-2 uppercase tracking-wider"
                       >
-                        Clear
+                        {t('navbar.clear')}
                       </button>
-                      {/* INPUT SEARCH YEAR */}
                       <div className="relative px-2">
                         <input 
                             type="number" 
-                            placeholder="Cari tahun..." 
+                            placeholder={t('navbar.year_search')}
                             value={yearSearch}
                             onChange={(e) => setYearSearch(e.target.value)}
                             className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-gray-700 placeholder-gray-400 appearance-none"
@@ -306,7 +314,7 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                         ))
                     ) : (
                         <div className="px-3 py-4 text-center text-sm text-gray-500">
-                            Tahun tidak ditemukan
+                            {t('navbar.year')} {t('navbar.not_found')}
                         </div>
                     )}
                   </div>
@@ -329,7 +337,7 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                   }`}
               >
                 <span className="flex items-center">
-                  Country
+                  {t('navbar.country')}
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className={`ml-1 h-4 w-4 transition-transform ${isCountryDropdownOpen ? 'rotate-180' : ''}`}>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
@@ -350,13 +358,12 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                         onClick={clearFiltersAndNotify}
                         className="text-xs font-bold text-red-500 hover:text-red-700 transition-colors w-full text-left px-2 uppercase tracking-wider"
                       >
-                        Clear
+                        {t('navbar.clear')}
                       </button>
-                      {/* INPUT SEARCH COUNTRY */}
                       <div className="relative px-2">
                         <input 
                             type="text" 
-                            placeholder="Cari negara..." 
+                            placeholder={t('navbar.country_search')}
                             value={countrySearch}
                             onChange={(e) => setCountrySearch(e.target.value)}
                             className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-gray-700 placeholder-gray-400"
@@ -381,7 +388,7 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                         ))
                     ) : (
                         <div className="px-3 py-4 text-center text-sm text-gray-500">
-                            Negara tidak ditemukan
+                             {t('navbar.country')} {t('navbar.not_found')}
                         </div>
                     )}
                   </div>
@@ -389,14 +396,14 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
               )}
             </div>
 
-            {/* Static Links */}
+            {/* Static Links (Now Playing, etc) */}
             {[
-              { name: "Now Playing", href: "#now_playing" },
-              { name: "Popular", href: "#popular" },
-              { name: "Top Rated", href: "#top_rated" }
+              { name: t('navbar.now_playing'), href: "#now_playing" },
+              { name: t('navbar.popular'), href: "#popular" },
+              { name: t('navbar.top_rated'), href: "#top_rated" }
             ].map((item, index) => (
               <a 
-                key={item.name}
+                key={index} // Pakai index karena nama bisa berubah (translate)
                 href={item.href} 
                 className="relative text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium text-xs transition-all duration-300 hover:scale-105 no-underline px-3 py-2"
               >
@@ -405,7 +412,7 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
             ))}
           </div>
 
-          {/* Search & Theme Toggle */}
+          {/* Search, Theme Toggle, LANGUAGE TOGGLE */}
           <div className="hidden md:flex items-center space-x-3">
             <form onSubmit={handleSearchSubmit} className="relative">
               <div className={`flex items-center transition-all duration-500 transform ${
@@ -414,7 +421,7 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                 <div className="relative flex items-center">
                   <input
                     type="text"
-                    placeholder="Search movies..."
+                    placeholder={t('navbar.search_placeholder')} // Translate placeholder
                     className={`relative w-48 lg:w-64 px-4 py-2 pr-10 rounded-full text-sm transition-all duration-300
                       bg-white text-gray-900 placeholder-gray-500 border
                       ${isSearchFocused 
@@ -431,13 +438,21 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                     type="submit"
                     className="absolute right-2 p-1.5 text-gray-400 hover:text-blue-600 transition-colors"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-4 w-4">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
+                    <IoMdSearch className="h-4 w-4"/>
                   </button>
                 </div>
               </div>
             </form>
+
+            {/* 4. TOMBOL BAHASA (ID/EN) */}
+            <button
+                onClick={toggleLanguage}
+                className="p-2.5 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors border border-transparent dark:border-gray-700 text-sm font-bold w-10 h-10 flex items-center justify-center"
+                aria-label="Change Language"
+            >
+                {/* Tampilkan bendera/kode berdasarkan bahasa aktif */}
+                {i18n.language === 'id' ? '🇮🇩' : '🇺🇸'}
+            </button>
 
             <button
                 onClick={toggleTheme}
@@ -450,6 +465,14 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
 
           {/* Mobile Button */}
           <div className="lg:hidden flex items-center space-x-2">
+             {/* Mobile Lang Button */}
+            <button
+                onClick={toggleLanguage}
+                className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-sm font-bold"
+            >
+                {i18n.language === 'id' ? '🇮🇩' : '🇺🇸'}
+            </button>
+
             <button
                 onClick={toggleTheme}
                 className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-yellow-500 dark:text-blue-300 border border-transparent dark:border-gray-700"
@@ -476,7 +499,9 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
         {isMenuOpen && (
           <div className="lg:hidden border-t border-gray-200 dark:border-gray-800 py-4 space-y-4 animate-in slide-in-from-top duration-300 bg-white dark:bg-black">
              <div className="px-2 space-y-2">
-                <button onClick={() => setIsGenreDropdownOpen(!isGenreDropdownOpen)} className="w-full text-left px-4 py-2 text-gray-900 dark:text-white font-medium bg-gray-100 dark:bg-gray-900 rounded-lg">Browse Genre</button>
+                <button onClick={() => setIsGenreDropdownOpen(!isGenreDropdownOpen)} className="w-full text-left px-4 py-2 text-gray-900 dark:text-white font-medium bg-gray-100 dark:bg-gray-900 rounded-lg">
+                    {t('navbar.genre')}
+                </button>
                 {isGenreDropdownOpen && (
                     <div className="pl-4 pr-2 grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
                         {genres.map(g => (
@@ -487,9 +512,9 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
              </div>
              
              <div className="px-2 grid grid-cols-3 gap-2">
-                <a href="#now_playing" className="text-center px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg text-sm font-medium" onClick={() => setIsMenuOpen(false)}>Now Playing</a>
-                <a href="#popular" className="text-center px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-lg text-sm font-medium" onClick={() => setIsMenuOpen(false)}>Popular</a>
-                <a href="#top_rated" className="text-center px-3 py-2 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 rounded-lg text-sm font-medium" onClick={() => setIsMenuOpen(false)}>Top Rated</a>
+                <a href="#now_playing" className="text-center px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg text-sm font-medium" onClick={() => setIsMenuOpen(false)}>{t('navbar.now_playing')}</a>
+                <a href="#popular" className="text-center px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-lg text-sm font-medium" onClick={() => setIsMenuOpen(false)}>{t('navbar.popular')}</a>
+                <a href="#top_rated" className="text-center px-3 py-2 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 rounded-lg text-sm font-medium" onClick={() => setIsMenuOpen(false)}>{t('navbar.top_rated')}</a>
              </div>
           </div>
         )}

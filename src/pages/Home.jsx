@@ -5,8 +5,12 @@ import MovieCarousel from "../components/Carousel";
 import MovieList from "../components/MovieList";
 import { IoIosArrowUp, IoMdArrowRoundUp, IoMdArrowRoundDown } from "react-icons/io";
 import Footer from "../components/Footer";
+import { useTranslation } from "react-i18next"; // 1. IMPORT
 
 const Home = () => {
+  // 2. USE TRANSLATION HOOK
+  const { t } = useTranslation();
+
   const [showScrollToTop, setShowScrollToTop] = useState(false);
   
   // --- Data States ---
@@ -49,7 +53,6 @@ const Home = () => {
     return sessionStorage.getItem('sortOrder') || 'desc';
   });
 
-  // sortBy sekarang bisa 'rating', 'vote_count', atau 'release_date'
   const [sortBy, setSortBy] = useState(() => {
     return sessionStorage.getItem('sortBy') || 'rating';
   });
@@ -62,13 +65,11 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [filterLoading, setFilterLoading] = useState(false);
   
-  // PERUBAHAN: 30 ITEM PER PAGE
   const itemsPerPage = 30;
   
   const baseImgUrl = process.env.REACT_APP_BASEIMGURL;
   const nowPlayingRef = useRef(null);
 
-  // --- EFFECT: AUTO-SAVE ---
   useEffect(() => {
     sessionStorage.setItem('searchResults', JSON.stringify(searchResults));
     sessionStorage.setItem('filteredMovies', JSON.stringify(filteredMovies));
@@ -110,9 +111,7 @@ const Home = () => {
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // --- LOGIC FUNCTIONS ---
+  }, []);
 
   const getActiveDataSource = () => {
     if (currentView === 'search') return searchResults;
@@ -120,13 +119,11 @@ const Home = () => {
     return [];
   };
 
-  // 2. Sort Data (UPDATED: Added Date Logic)
   const getSortedMovies = () => {
     const data = [...getActiveDataSource()];
     return data.sort((a, b) => {
       let valA, valB;
 
-      // Tentukan nilai pembanding berdasarkan sortBy
       if (sortBy === 'rating') {
         valA = a.vote_average;
         valB = b.vote_average;
@@ -134,17 +131,13 @@ const Home = () => {
         valA = a.vote_count;
         valB = b.vote_count;
       } else if (sortBy === 'release_date') {
-        // Konversi string tanggal ke object Date agar bisa dibandingkan
-        // Gunakan epoch 0 jika tanggal kosong agar tidak error
         valA = new Date(a.release_date || '1970-01-01');
         valB = new Date(b.release_date || '1970-01-01');
       }
 
       if (sortOrder === 'desc') {
-        // High to Low (Newest to Oldest for Date)
         return valB - valA; 
       } else {
-        // Low to High (Oldest to Newest for Date)
         return valA - valB; 
       }
     });
@@ -167,7 +160,6 @@ const Home = () => {
     setCurrentPage(1);
   };
 
-  // Logic siklus tombol Sort: Rating -> Popularity -> Date -> Rating ...
   const cycleSortType = () => {
     setSortBy(prev => {
         if (prev === 'rating') return 'vote_count';
@@ -182,8 +174,6 @@ const Home = () => {
     setSortOrder('desc');
     setSortBy('rating'); 
   };
-
-  // --- HANDLERS ---
 
   const search = async (q) => {
     if (q.length > 1) {
@@ -313,9 +303,10 @@ const Home = () => {
   };
 
   const getFilterTitle = () => {
-    let title = "Movies";
-    if (activeCountry) title += ` from ${activeCountry.english_name}`;
-    if (activeGenre) title = `${activeGenre.name} ${title}`;
+    let title = "Movies"; // Default
+    // Logic Translate Title dinamis agak tricky, kita simplify:
+    if (activeCountry) title = `${t('home.movies_from')} ${activeCountry.english_name}`;
+    if (activeGenre) title = `${activeGenre.name} ${title === "Movies" ? "" : title}`;
     if (activeYear) title += ` (${activeYear})`;
     return title === "Movies" ? "" : title;
   };
@@ -350,13 +341,12 @@ const Home = () => {
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p>Loading movies...</p>
+          <p>{t('home.loading')}</p>
         </div>
       </div>
     );
   }
 
-  // Helper untuk menampilkan Label Tombol Sort
   const getSortLabel = () => {
     if (sortBy === 'rating') return '⭐ Rating';
     if (sortBy === 'vote_count') return '👥 Popularity';
@@ -365,7 +355,6 @@ const Home = () => {
   }
 
   return (
-    // <div className="min-h-screen bg-black text-white">
     <div className="min-h-screen transition-colors duration-300 bg-gray-50 text-gray-900 dark:bg-black dark:text-white">
       <NavBar 
         onSearch={search} 
@@ -383,31 +372,30 @@ const Home = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-screen">
             <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
               <h2 className="text-2xl font-bold">
-                {currentView === 'search' ? 'Search Results' : getFilterTitle()}
-                <span className="text-sm font-normal text-gray-400 ml-2">({getActiveDataSource().length} items)</span>
+                {/* TRANSLATE TITLE */}
+                {currentView === 'search' ? t('home.search_results') : getFilterTitle()}
+                <span className="text-sm font-normal text-gray-400 ml-2">({getActiveDataSource().length} {t('home.items')})</span>
               </h2>
 
               <div className="flex flex-wrap items-center gap-3">
-                {/* TOMBOL SORT TYPE (Updated: Rating -> Pop -> Date) */}
                 <button
                   onClick={cycleSortType}
                   className="flex items-center space-x-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm border border-gray-700"
                 >
-                  <span className="text-gray-400">Sort By:</span>
+                  <span className="text-gray-400">{t('home.sort_by')}</span>
                   <span className="font-bold text-white">{getSortLabel()}</span>
                 </button>
 
-                {/* TOMBOL ORDER (High/Low) */}
                 <button
                   onClick={toggleSortOrder}
                   className="flex items-center space-x-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm border border-gray-700"
                 >
-                  <span className="text-gray-400">Order:</span>
+                  <span className="text-gray-400">{t('home.order')}</span>
                   <span className={`font-bold ${sortOrder === 'desc' ? 'text-green-400' : 'text-orange-400'}`}>
-                    {/* Logic text order menyesuaikan tipe sort */}
+                    {/* TRANSLATE ORDER LOGIC */}
                     {sortBy === 'release_date' 
-                        ? (sortOrder === 'desc' ? 'Newest First' : 'Oldest First')
-                        : (sortOrder === 'desc' ? 'High to Low' : 'Low to High')
+                        ? (sortOrder === 'desc' ? t('home.newest') : t('home.oldest'))
+                        : (sortOrder === 'desc' ? t('home.high_low') : t('home.low_high'))
                     }
                   </span>
                   {sortOrder === 'desc' ? <IoMdArrowRoundDown /> : <IoMdArrowRoundUp />}
@@ -417,7 +405,7 @@ const Home = () => {
                   onClick={currentView === 'search' ? () => { setSearchResults([]); setCurrentView('home'); } : clearFilters}
                   className="text-gray-400 hover:text-white transition-colors text-sm underline ml-2"
                 >
-                  {currentView === 'search' ? 'Clear Search' : 'Clear Filters'}
+                  {currentView === 'search' ? t('home.clear_search') : t('home.clear_filters')}
                 </button>
               </div>
             </div>
@@ -425,19 +413,17 @@ const Home = () => {
             {filterLoading ? (
               <div className="text-center py-20">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                {/* Update loading message agar user tau ini 500 data */}
-                <p>Fetching 500 movies from database (This may take a few seconds)...</p>
+                <p>{t('home.fetching')}</p>
               </div>
             ) : getActiveDataSource().length > 0 ? (
               <>
-                {/* UPDATE 1: Kirim type 'search' atau 'filter' */}
                 <MovieList movies={getPaginatedMovies()} type={currentView} />
                 <Pagination totalItems={getActiveDataSource().length} />
               </>
             ) : (
               <div className="text-center py-20 bg-gray-900/50 rounded-xl border border-gray-800">
-                <p className="text-gray-400 text-lg">No movies found.</p>
-                <button onClick={clearFilters} className="mt-4 text-blue-400 hover:underline">Reset Filters</button>
+                <p className="text-gray-400 text-lg">{t('home.no_movies')}</p>
+                <button onClick={clearFilters} className="mt-4 text-blue-400 hover:underline">{t('home.reset')}</button>
               </div>
             )}
           </div>
@@ -449,32 +435,29 @@ const Home = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <section className="py-12" id="now_playing">
                 <div className="flex items-center justify-between mb-8">
-                  <h2 className="text-2xl md:text-3xl font-bold">Now Playing</h2>
+                  <h2 className="text-2xl md:text-3xl font-bold">{t('home.now_playing')}</h2>
                   <button onClick={() => scrollToSection("now_playing")} className="text-gray-400 hover:text-white">
                     <IoIosArrowUp />
                   </button>
                 </div>
-                {/* UPDATE 2: Kirim type 'now_playing' */}
                 <MovieList movies={nowPlayingMovies} type="now_playing" />
               </section>
               <section className="py-12 border-t border-gray-800" id="popular">
                 <div className="flex items-center justify-between mb-8">
-                  <h2 className="text-2xl md:text-3xl font-bold">Popular Movies</h2>
+                  <h2 className="text-2xl md:text-3xl font-bold">{t('home.popular')}</h2>
                   <button onClick={() => scrollToSection("popular")} className="text-gray-400 hover:text-white">
                     <IoIosArrowUp />
                   </button>
                 </div>
-                {/* UPDATE 3: Kirim type 'popular' */}
                 <MovieList movies={popularMovies} type="popular" />
               </section>
               <section className="py-12 border-t border-gray-800" id="top_rated">
                 <div className="flex items-center justify-between mb-8">
-                  <h2 className="text-2xl md:text-3xl font-bold">Top Rated</h2>
+                  <h2 className="text-2xl md:text-3xl font-bold">{t('home.top_rated')}</h2>
                   <button onClick={() => scrollToSection("top_rated")} className="text-gray-400 hover:text-white">
                       <IoIosArrowUp />
                   </button>
                 </div>
-                {/* UPDATE 4: Kirim type 'top_rated' */}
                 <MovieList movies={topRatedMovies} type="top_rated" />
               </section>
             </div>
