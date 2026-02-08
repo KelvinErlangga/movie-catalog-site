@@ -21,10 +21,6 @@ export const parseNaturalQuery = (query) => {
     'hits', 'viral', 'favorit', 'recommended', 'sukses'
   ];
   
-  const yearKeywords = [
-    'tahun', 'year', '2025', '2024', '2023', '2022', '2021'
-  ];
-  
   let intent = 'search';
   
   // Enhanced intent detection

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { getMovieRecommendation } from '../services/gemini';
-import { FaRobot, FaStar, FaHeart, FaClock, FaSpinner, FaArrowLeft, FaImage } from 'react-icons/fa';
+import { FaRobot, FaHeart, FaClock, FaSpinner, FaArrowLeft } from 'react-icons/fa';
 
 const MoreRecommendations = () => {
   const [searchParams] = useSearchParams();
@@ -44,9 +44,54 @@ const MoreRecommendations = () => {
 
   useEffect(() => {
     loadMoreRecommendations();
-  }, [mood, genres, recentlyWatched]);
+  }, [loadMoreRecommendations]);
 
-  const loadMoreRecommendations = async () => {
+  const loadFallbackRecommendations = useCallback(async () => {
+    const { getFallbackRecommendations } = await import('../services/gemini-fallback');
+    
+    if (page === 1) {
+      // First load - get 3 movies
+      const fallbackRecs = getFallbackRecommendations(mood);
+      setRecommendations(fallbackRecs);
+      setHasMore(true);
+    } else {
+      // Load more - get additional movies without duplicates
+      setRecommendations(prev => {
+        const existingIds = new Set(prev.map(r => r.id || r.title));
+        let newRecs = [];
+        let attempts = 0;
+        const maxAttempts = 10; // Prevent infinite loop
+        
+        // Keep trying to get new movies until we have 3 or reach max attempts
+        while (newRecs.length < recommendationsPerPage && attempts < maxAttempts) {
+          const moreRecs = getFallbackRecommendations(mood);
+          const uniqueRecs = moreRecs.filter(rec => !existingIds.has(rec.id || rec.title));
+          
+          // Add to new recommendations and existing IDs
+          uniqueRecs.forEach(rec => {
+            if (newRecs.length < recommendationsPerPage) {
+              newRecs.push(rec);
+              existingIds.add(rec.id || rec.title);
+            }
+          });
+          
+          attempts++;
+        }
+        
+        const updatedRecommendations = [...prev, ...newRecs];
+        
+        // Check if we can still get more movies
+        if (newRecs.length === 0 || attempts >= maxAttempts) {
+          setHasMore(false);
+          console.log('🚫 No more unique movies available');
+        }
+        
+        return updatedRecommendations;
+      });
+    }
+  }, [mood, page, recommendationsPerPage]);
+
+  const loadMoreRecommendations = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     
@@ -92,52 +137,7 @@ const MoreRecommendations = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const loadFallbackRecommendations = async () => {
-    const { getFallbackRecommendations } = await import('../services/gemini-fallback');
-    
-    if (page === 1) {
-      // First load - get 3 movies
-      const fallbackRecs = getFallbackRecommendations(mood);
-      setRecommendations(fallbackRecs);
-      setHasMore(true);
-    } else {
-      // Load more - get additional movies without duplicates
-      setRecommendations(prev => {
-        const existingIds = new Set(prev.map(r => r.id || r.title));
-        let newRecs = [];
-        let attempts = 0;
-        const maxAttempts = 10; // Prevent infinite loop
-        
-        // Keep trying to get new movies until we have 3 or reach max attempts
-        while (newRecs.length < recommendationsPerPage && attempts < maxAttempts) {
-          const moreRecs = getFallbackRecommendations(mood);
-          const uniqueRecs = moreRecs.filter(rec => !existingIds.has(rec.id || rec.title));
-          
-          // Add to new recommendations and existing IDs
-          uniqueRecs.forEach(rec => {
-            if (newRecs.length < recommendationsPerPage) {
-              newRecs.push(rec);
-              existingIds.add(rec.id || rec.title);
-            }
-          });
-          
-          attempts++;
-        }
-        
-        const updatedRecommendations = [...prev, ...newRecs];
-        
-        // Check if we can still get more movies
-        if (newRecs.length === 0 || attempts >= maxAttempts) {
-          setHasMore(false);
-          console.log('🚫 No more unique movies available');
-        }
-        
-        return updatedRecommendations;
-      });
-    }
-  };
+  }, [mood, genres, recentlyWatched, page, recommendationsPerPage, loadFallbackRecommendations]);
 
   const handleLoadMore = () => {
     setPage(prev => prev + 1);
@@ -145,19 +145,8 @@ const MoreRecommendations = () => {
   };
 
   const handleMovieClick = async (movie) => {
-    try {
-      const { searchMovie } = await import('../services/api');
-      const searchResults = await searchMovie(movie.title);
-      
-      if (searchResults.length > 0) {
-        navigate(`/detail/${searchResults[0].id}`);
-      } else {
-        navigate(`/detail/${movie.title}`);
-      }
-    } catch (error) {
-      console.error('Error searching movie:', error);
-      navigate(`/detail/${movie.title}`);
-    }
+    // Navigate to detail page using movie title as fallback
+    navigate(`/detail/${movie.title}`);
   };
 
   const getMoodEmoji = (mood) => {

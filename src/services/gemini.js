@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { getFallbackRecommendations, getFallbackSearch } from './gemini-fallback';
+import { getFallbackRecommendations } from './gemini-fallback';
 
 // Debug: Check if API key is loaded
 console.log('🔍 Gemini API Key Status:', process.env.REACT_APP_GEMINI_API_KEY ? '✅ Loaded' : '❌ Not found');
@@ -11,7 +11,7 @@ export const getMovieRecommendation = async (userPreferences = {}) => {
   console.log('🎬 Getting movie recommendation with preferences:', userPreferences);
   
   // Extract mood outside try block so it's available in catch blocks
-  const { genres, year, mood, recentlyWatched } = userPreferences;
+  const { genres, mood, recentlyWatched } = userPreferences;
   
   try {
     // Coba model yang berbeda - mulai dengan yang paling basic

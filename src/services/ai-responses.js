@@ -20,7 +20,7 @@ const popularMovies = {
 };
 
 export const generateAIResponse = async (parsedQuery) => {
-  const { intent, title, year, genre, originalQuery } = parsedQuery;
+  const { intent } = parsedQuery;
   
   console.log('🤖 Generating AI response for intent:', intent);
   
