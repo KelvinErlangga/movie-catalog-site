@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Fallback Recommendations</title>
+</head>
+<body>
+    <h1>Testing Fallback Recommendations</h1>
+    <div id="results"></div>
+    
+    <script type="module">
+        // Simulate the fallback function
+        function getFallbackRecommendations(mood = 'umum') {
+            const allRecommendations = {
+                action: [
+                    { title: "The Dark Knight", year: 2008, reason: "Film action klasik yang sangat direkomendasikan", id: "dark-knight", mood_match: "Cocok untuk mood action", similarity: "Action thriller terbaik" },
+                    { title: "John Wick", year: 2014, reason: "Action thriller yang intens", id: "john-wick", mood_match: "Sempurna untuk mood action", similarity: "Martial arts epic" },
+                    { title: "The Raid 2", year: 2014, reason: "Martial arts action Indonesia", id: "the-raid-2", mood_match: "Action Indonesia terbaik", similarity: "Martial arts masterpiece" },
+                    { title: "Mad Max: Fury Road", year: 2015, reason: "Post-apocalyptic action yang epik", id: "mad-max-fury", mood_match: "Action epik untuk mood kamu", similarity: "Visual spectacle yang menakjubkan" },
+                    { title: "Die Hard", year: 1988, reason: "Classic action dengan humor", id: "die-hard", mood_match: "Action klasik yang seru", similarity: "Hero action yang ikonik" },
+                    { title: "Mission: Impossible - Fallout", year: 2018, reason: "Spy action dengan stunt menakjubkan", id: "mi-fallout", mood_match: "Action spy yang intens", similarity: "Stunt work yang luar biasa" }
+                ],
+                bahagia: [
+                    { title: "The Grand Budapest Hotel", year: 2014, reason: "Comedy dengan visual yang unik", id: "grand-budapest", mood_match: "Cocok untuk mood bahagia", similarity: "Visual comedy yang indah" },
+                    { title: "La La Land", year: 2016, reason: "Musical romance yang beautiful", id: "la-la-land", mood_match: "Musical yang mengangkat mood", similarity: "Romance dengan musik bagus" },
+                    { title: "Paddington 2", year: 2017, reason: "Family comedy yang heartwarming", id: "paddington-2", mood_match: "Perfect untuk mood bahagia", similarity: "Family-friendly dan lucu" },
+                    { title: "The Intouchables", year: 2011, reason: "French comedy yang inspiratif", id: "intouchables", mood_match: "Uplifting dan menyenangkan", similarity: "Friendship story yang manis" },
+                    { title: "Singing in the Rain", year: 1952, reason: "Classic musical yang joyful", id: "singing-rain", mood_match: "Musical klasik bahagia", similarity: "Song and dance yang iconic" },
+                    { title: "Amélie", year: 2001, reason: "Whimsical French romance", id: "amelie", mood_match: "Quirky dan menyenangkan", similarity: "Romantic comedy yang unik" }
+                ],
+                sedih: [
+                    { title: "The Pursuit of Happyness", year: 2006, reason: "Inspirational story yang mengharukan", id: "pursuit-happyness", mood_match: "Drama inspiratif", similarity: "Story tentang perjuangan" },
+                    { title: "Grave of the Fireflies", year: 1988, reason: "Sad anime yang classic", id: "grave-fireflies", mood_match: "Anime yang sangat menyentuh", similarity: "War drama yang powerful" },
+                    { title: "Schindler's List", year: 1994, reason: "Holocaust drama yang powerful", id: "schindlers-list", mood_match: "Drama sejarah yang deep", similarity: "Historical drama masterpiece" },
+                    { title: "Manchester by the Sea", year: 2016, reason: "Family drama yang realistic", id: "manchester-sea", mood_match: "Realistic dan emotional", similarity: "Family drama yang raw" },
+                    { title: "The Green Mile", year: 1999, reason: "Prison drama yang supernatural", id: "green-mile", mood_match: "Drama yang mengharukan", similarity: "Supernatural drama elements" },
+                    { title: "Life is Beautiful", year: 1997, reason: "Holocaust comedy-drama", id: "life-beautiful", mood_match: "Bittersweet dan inspiratif", similarity: "Comedy-drama yang unik" }
+                ],
+                romantis: [
+                    { title: "La La Land", year: 2016, reason: "Musical romance yang beautiful", id: "la-la-land-rom", mood_match: "Romance yang musical", similarity: "Modern musical romance" },
+                    { title: "The Notebook", year: 2004, reason: "Classic romance story", id: "the-notebook", mood_match: "Classic romance yang epic", similarity: "Timeless love story" },
+                    { title: "Before Sunrise", year: 1995, reason: "Romance yang realistic dan heartfelt", id: "before-sunrise", mood_match: "Realistic romance", similarity: "Indie romance yang natural" },
+                    { title: "Eternal Sunshine of the Spotless Mind", year: 2004, reason: "Sci-fi romance yang unique", id: "eternal-sunshine", mood_match: "Mind-bending romance", similarity: "Sci-fi romance elements" },
+                    { title: "Pride and Prejudice", year: 2005, reason: "Period romance yang classic", id: "pride-prejudice", mood_match: "Classic period romance", similarity: "Jane Austen adaptation" },
+                    { title: "500 Days of Summer", year: 2009, reason: "Modern romance yang realistic", id: "500-days", mood_match: "Realistic modern romance", similarity: "Non-linear romance story" }
+                ],
+                seru: [
+                    { title: "The Matrix", year: 1999, reason: "Sci-fi yang mengubah cinema", id: "the-matrix-seru", mood_match: "Sci-fi action yang seru", similarity: "Mind-bending action" },
+                    { title: "Inception", year: 2010, reason: "Sci-fi dengan plot twist yang menarik", id: "inception-seru", mood_match: "Plot twist yang epic", similarity: "Complex narrative structure" },
+                    { title: "Interstellar", year: 2014, reason: "Space sci-fi yang epic", id: "interstellar-seru", mood_match: "Space adventure yang seru", similarity: "Hard sci-fi elements" },
+                    { title: "Avengers: Endgame", year: 2019, reason: "Superhero culmination yang epic", id: "avengers-endgame", mood_match: "Superhero action seru", similarity: "MCU culmination" },
+                    { title: "Parasite", year: 2019, reason: "Korean thriller yang unpredictable", id: "parasite-seru", mood_match: "Thriller yang seru", similarity: "Social commentary thriller" },
+                    { title: "Joker", year: 2019, reason: "Psychological thriller yang dark", id: "joker-seru", mood_match: "Dark psychological thriller", similarity: "Character study yang intense" }
+                ],
+                tenang: [
+                    { title: "The Shawshank Redemption", year: 1994, reason: "Film drama inspiratif tentang harapan", id: "shawshank-tenang", mood_match: "Inspirational dan tenang", similarity: "Prison drama yang uplifting" },
+                    { title: "Forrest Gump", year: 1994, reason: "Heartwarming story tentang life", id: "forrest-gump", mood_match: "Heartwarming dan tenang", similarity: "Life journey yang inspiratif" },
+                    { title: "The Tree of Life", year: 2011, reason: "Meditative cinema yang beautiful", id: "tree-life", mood_match: "Meditative dan tenang", similarity: "Visual poetry yang indah" },
+                    { title: "Lost in Translation", year: 2003, reason: "Subtle romance yang atmospheric", id: "lost-translation", mood_match: "Atmospheric dan tenang", similarity: "Character study yang subtle" },
+                    { title: "Her", year: 2013, reason: "Sci-fi romance yang gentle", id: "her-tenang", mood_match: "Gentle sci-fi romance", similarity: "Future romance yang thoughtful" },
+                    { title: "Paterson", year: 2016, reason: "Quiet poetry about daily life", id: "paterson", mood_match: "Quiet dan contemplative", similarity: "Daily life poetry" }
+                ],
+                umum: [
+                    { title: "The Shawshank Redemption", year: 1994, reason: "Film drama inspiratif tentang harapan", id: "shawshank-umum", mood_match: "Cocok untuk semua mood", similarity: "Masterpiece yang universal" },
+                    { title: "Pulp Fiction", year: 1994, reason: "Film kultus dengan narasi non-linear", id: "pulp-fiction-umum", mood_match: "Classic yang selalu relevan", similarity: "Tarantino masterpiece" },
+                    { title: "The Matrix", year: 1999, reason: "Sci-fi yang mengubah cinema", id: "matrix-umum", mood_match: "Sci-fi yang universal", similarity: "Revolutionary sci-fi" },
+                    { title: "The Godfather", year: 1972, reason: "Crime saga yang legendary", id: "godfather-umum", mood_match: "Classic cinema masterpiece", similarity: "Crime saga yang epic" },
+                    { title: "Fight Club", year: 1999, reason: "Satire social yang provocative", id: "fight-club", mood_match: "Thought-provoking drama", similarity: "Social commentary yang sharp" },
+                    { title: "Goodfellas", year: 1990, reason: "Crime drama yang authentic", id: "goodfellas", mood_match: "Classic crime storytelling", similarity: "Mob drama yang realistic" }
+                ]
+            };
+
+            // Get all movies for the mood and randomize selection
+            const moodMovies = allRecommendations[mood] || allRecommendations.umum;
+            
+            // Shuffle and take 3 random movies
+            const shuffled = [...moodMovies].sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, 3);
+        }
+
+        // Test the function
+        const results = document.getElementById('results');
+        
+        function testMood(mood, count) {
+            const recs = getFallbackRecommendations(mood);
+            const div = document.createElement('div');
+            div.innerHTML = `<h3>${mood.toUpperCase()} #${count}:</h3>`;
+            recs.forEach(rec => {
+                div.innerHTML += `<p>- ${rec.title} (${rec.year}) - ${rec.reason}</p>`;
+            });
+            results.appendChild(div);
+        }
+
+        // Test multiple times to see randomization
+        testMood('action', 1);
+        testMood('action', 2);
+        testMood('action', 3);
+        testMood('bahagia', 1);
+        testMood('bahagia', 2);
+        testMood('sedih', 1);
+        testMood('romantis', 1);
+        testMood('seru', 1);
+        testMood('tenang', 1);
+        testMood('umum', 1);
+    </script>
+</body>
+</html>

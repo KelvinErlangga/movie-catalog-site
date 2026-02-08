@@ -2,10 +2,13 @@ import React, { useState, useEffect, useRef } from "react";
 import { getMovieGenres, getCountries } from "../services/api";
 import { useTheme } from "../context/ThemeContext";
 import { IoMdMoon, IoMdSunny, IoMdSearch } from "react-icons/io";
+import { FaRobot } from "react-icons/fa";
 import { useTranslation } from "react-i18next"; // 1. IMPORT HOOK
+import { useNavigate } from "react-router-dom";
 
 export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountryFilter, onReset, activeGenre, activeYear, activeCountry }) {
   const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
   
   // 2. INISIALISASI TRANSLATION
   const { t, i18n } = useTranslation(); 
@@ -454,6 +457,15 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                 {i18n.language === 'id' ? '🇮🇩' : '🇺🇸'}
             </button>
 
+            {/* AI Chat Button */}
+            <button
+                onClick={() => navigate('/ai-chat')}
+                className="p-2.5 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white transition-all duration-300 border-0 shadow-lg hover:shadow-xl transform hover:scale-105"
+                aria-label="AI Chat"
+            >
+                <FaRobot className="w-5 h-5" />
+            </button>
+
             <button
                 onClick={toggleTheme}
                 className="p-2.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors border border-transparent dark:border-gray-700"
@@ -471,6 +483,14 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
                 className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-sm font-bold"
             >
                 {i18n.language === 'id' ? '🇮🇩' : '🇺🇸'}
+            </button>
+
+            {/* Mobile AI Chat Button */}
+            <button
+                onClick={() => navigate('/ai-chat')}
+                className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white"
+            >
+                <FaRobot className="w-4 h-4" />
             </button>
 
             <button

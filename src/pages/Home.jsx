@@ -3,6 +3,7 @@ import { getMovieList, nowPlayingMovie, topRatedMovie, searchMovie, getMoviesByG
 import NavBar from "../components/Navbar";
 import MovieCarousel from "../components/Carousel";
 import MovieList from "../components/MovieList";
+import AIRecommendation from "../components/AIRecommendation";
 import { IoIosArrowUp, IoMdArrowRoundUp, IoMdArrowRoundDown } from "react-icons/io";
 import Footer from "../components/Footer";
 import { useTranslation } from "react-i18next"; 
@@ -458,6 +459,10 @@ const Home = () => {
                   </button>
                 </div>
                 <MovieList movies={topRatedMovies} type="top_rated" />
+              </section>
+              {/* AI Recommendation Section */}
+              <section className="py-12 border-t border-gray-800">
+                <AIRecommendation />
               </section>
             </div>
             <Footer />

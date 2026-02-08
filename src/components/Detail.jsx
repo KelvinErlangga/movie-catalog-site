@@ -324,7 +324,6 @@ const Detail = () => {
                     </div>
                   </div>
                 )}
-
                 {/* Production Companies */}
                 {movieDetail.production_companies && movieDetail.production_companies.length > 0 && (
                   <div className="mt-8">

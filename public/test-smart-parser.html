@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Parser Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        input, button {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        button {
+            background: linear-gradient(45deg, #2196F3, #9C27B0);
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-left: 4px solid #4CAF50;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .movie-result {
+            background: #e3f2fd;
+            border-left-color: #2196F3;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 Smart Natural Language Parser Test</h1>
+        <p>Test parsing natural language queries without Gemini API</p>
+
+        <div class="input-group">
+            <input type="text" id="queryInput" placeholder="Masukkan query (contoh: 'agak laen menyala pantiku')" value="agak laen menyala pantiku">
+            <button onclick="testParser()">🧠 Test Parser</button>
+            <button onclick="testMultipleQueries()">🎯 Test Multiple Queries</button>
+        </div>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // Smart Natural Language Parser (Fallback untuk Gemini API)
+        const parseNaturalQuery = (query) => {
+            console.log('🧠 Parsing natural query:', query);
+            
+            const lowerQuery = query.toLowerCase();
+            
+            // Extract movie title patterns
+            const patterns = [
+                // "sinopsis film [title]"
+                /sinopsis\s+film\s+(.+?)(?:\s+\d{4})?$/i,
+                // "film [title] sinopsis"
+                /film\s+(.+?)\s+sinopsis$/i,
+                // "[title] sinopsis"
+                /(.+?)\s+sinopsis$/i,
+                // "berikan saya sinopsis [title]"
+                /berikan\s+saya\s+sinopsis\s+(.+?)(?:\s+\d{4})?$/i,
+                // "cari film [title]"
+                /cari\s+film\s+(.+?)(?:\s+\d{4})?$/i,
+                // "film [title]"
+                /film\s+(.+?)(?:\s+\d{4})?$/i,
+                // Extract year
+                /(\d{4})/,
+                // Direct movie title (last resort)
+                /^(.+?)(?:\s+\d{4})?$/
+            ];
+            
+            let extractedTitle = '';
+            let extractedYear = null;
+            let intent = 'search'; // search, sinopsis, rekomendasi
+            
+            // Detect intent
+            if (lowerQuery.includes('sinopsis') || lowerQuery.includes('cerita')) {
+                intent = 'sinopsis';
+            } else if (lowerQuery.includes('rekomendasi') || lowerQuery.includes('sarankan')) {
+                intent = 'rekomendasi';
+            } else if (lowerQuery.includes('review')) {
+                intent = 'review';
+            }
+            
+            // Extract title using patterns
+            for (const pattern of patterns) {
+                const match = query.match(pattern);
+                if (match) {
+                    extractedTitle = match[1] || match[0];
+                    break;
+                }
+            }
+            
+            // Extract year separately
+            const yearMatch = query.match(/(\d{4})/);
+            if (yearMatch) {
+                extractedYear = parseInt(yearMatch[1]);
+            }
+            
+            // Clean up title
+            if (extractedTitle) {
+                extractedTitle = extractedTitle
+                    .replace(/\b(sinopsis|film|cari|berikan|saya|tahun|year)\b/gi, '')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+            }
+            
+            const result = {
+                intent,
+                title: extractedTitle,
+                year: extractedYear,
+                originalQuery: query,
+                searchTerms: extractedTitle ? [extractedTitle] : query.split(' ').filter(word => word.length > 2)
+            };
+            
+            console.log('🧠 Parsed result:', result);
+            return result;
+        };
+
+        // Enhanced movie database for fallback
+        const getMovieByTitle = (title, year = null) => {
+            const movieDatabase = [
+                {
+                    title: "The Avengers",
+                    year: 2012,
+                    sinopsis: "Ketika musuh tak terduga muncul dan mengancam keselamatan global, Nick Fury, direktur S.H.I.E.L.D., memulai upaya perekrutan untuk menyelamatkan dunia dari bencana. Iron Man, Captain America, Thor, Hulk, Black Widow, dan Hawkeye harus bersatu untuk melawan Loki dan invasi alien.",
+                    keywords: ["avengers", "marvel", "superhero", "iron man", "captain america", "thor", "hulk"]
+                },
+                {
+                    title: "Avengers: Age of Ultron", 
+                    year: 2015,
+                    sinopsis: "Tony Stark menciptakan sistem pertahanan buatan yang disebut Ultron, namun AI ini menjadi sadar dan menganggap manusia sebagai ancaman. Para Avengers harus bersatu lagi untuk menghentikan Ultron dari menghancurkan dunia.",
+                    keywords: ["avengers", "ultron", "marvel", "iron man", "vision", "scarlet witch"]
+                },
+                {
+                    title: "The Dark Knight",
+                    year: 2008,
+                    sinopsis: "Batman harus menghadapi Joker, seorang anarkis psikopat yang menciptakan kekacauan di Gotham. Pertarungan antara orde dan kekacauan mencapai titik puncak dalam film superhero yang legendaris.",
+                    keywords: ["batman", "joker", "dark knight", "gotham", "superhero"]
+                }
+            ];
+            
+            // Search by title and year
+            const results = movieDatabase.filter(movie => {
+                const titleMatch = movie.title.toLowerCase().includes(title.toLowerCase()) || 
+                                  title.toLowerCase().includes(movie.title.toLowerCase());
+                const yearMatch = !year || movie.year === year;
+                return titleMatch && yearMatch;
+            });
+            
+            return results;
+        };
+
+        window.testParser = function() {
+            const query = document.getElementById('queryInput').value;
+            const resultDiv = document.getElementById('result');
+            
+            if (!query.trim()) {
+                resultDiv.innerHTML = '<div class="result">Please enter a query</div>';
+                return;
+            }
+            
+            // Test parsing
+            const parsed = parseNaturalQuery(query);
+            
+            let output = `🧠 **Parsing Results:**
+
+Original Query: "${parsed.originalQuery}"
+Intent: ${parsed.intent}
+Extracted Title: "${parsed.title}"
+Extracted Year: ${parsed.year || 'null'}
+Search Terms: [${parsed.searchTerms.join(', ')}]
+
+`;
+            
+            // Test movie lookup if sinopsis intent
+            if (parsed.intent === 'sinopsis' && parsed.title) {
+                const movies = getMovieByTitle(parsed.title, parsed.year);
+                
+                if (movies.length > 0) {
+                    output += `\n🎬 **Movie Found:**\n\n`;
+                    movies.forEach(movie => {
+                        output += `Title: ${movie.title} (${movie.year})\n`;
+                        output += `Sinopsis: ${movie.sinopsis.substring(0, 200)}...\n\n`;
+                    });
+                } else {
+                    output += `\n❌ **No movie found for "${parsed.title}"**\n`;
+                }
+            }
+            
+            resultDiv.innerHTML = `<div class="result">${output}</div>`;
+        };
+
+        window.testMultipleQueries = function() {
+            const testQueries = [
+                "berikan sinopsis film agak laen 2",
+                "agak laen menyala pantiku", 
+                "tolong berikan sinopsis nya disini",
+                "sinopsis film the avengers 2012",
+                "apa itu film interstellar",
+                "cerita film dark knight",
+                "film pengabdi setan tentang apa",
+                "cari film marvel action",
+                "rekomendasi film komedi",
+                "warkop dki reborn sinopsis"
+            ];
+            
+            let output = "🎯 **Multiple Query Tests:**\n\n";
+            
+            testQueries.forEach((query, index) => {
+                const parsed = parseNaturalQuery(query);
+                const movies = parsed.intent === 'sinopsis' && parsed.title ? getMovieByTitle(parsed.title, parsed.year) : [];
+                
+                output += `${index + 1}. "${query}"\n`;
+                output += `   Intent: ${parsed.intent}\n`;
+                output += `   Title: "${parsed.title}"\n`;
+                output += `   Year: ${parsed.year || 'null'}\n`;
+                output += `   Movies Found: ${movies.length}\n`;
+                
+                if (movies.length > 0) {
+                    output += `   Result: ${movies[0].title} - ${movies[0].sinopsis.substring(0, 50)}...\n`;
+                }
+                
+                output += "\n";
+            });
+            
+            document.getElementById('result').innerHTML = `<div class="result">${output}</div>`;
+        };
+
+        // Test on load
+        window.onload = function() {
+            testParser();
+        };
+    </script>
+</body>
+</html>

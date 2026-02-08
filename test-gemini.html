@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background: linear-gradient(45deg, #2196F3, #9C27B0);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-left: 4px solid #4CAF50;
+            border-radius: 5px;
+        }
+        .error {
+            border-left-color: #f44336;
+            background: #ffebee;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .feature-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 CinemaVin AI Assistant Test</h1>
+        <p>Test Gemini API integration untuk CinemaVin movie catalog</p>
+
+        <div class="feature-card">
+            <h3>🎯 AI Recommendation Engine</h3>
+            <p>Dapatkan rekomendasi film yang dipersonalisasi berdasarkan preferensi kamu!</p>
+        </div>
+
+        <div class="input-group">
+            <label for="mood">Mood saat ini:</label>
+            <select id="mood">
+                <option value="">Pilih mood</option>
+                <option value="bahagia">😊 Bahagia</option>
+                <option value="sedih">😢 Sedih</option>
+                <option value="action">⚡ Action</option>
+                <option value="romantis">💕 Romantis</option>
+                <option value="seru">🎉 Seru</option>
+                <option value="tenang">🧘 Tenang</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label for="genres">Genre favorit:</label>
+            <input type="text" id="genres" placeholder="Contoh: action, comedy, drama">
+        </div>
+
+        <div class="input-group">
+            <label for="recentlyWatched">Film yang baru ditonton:</label>
+            <input type="text" id="recentlyWatched" placeholder="Contoh: Avengers, Inception">
+        </div>
+
+        <button onclick="testRecommendation()">🎬 Dapatkan Rekomendasi</button>
+        <button onclick="testNaturalSearch()">🔍 Test Natural Search</button>
+        <button onclick="testReviewGeneration()">📝 Test Review Generator</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script type="module">
+        // Simulasi Gemini API untuk testing
+        const mockResponses = {
+            recommendation: [
+                {
+                    title: "The Dark Knight",
+                    year: 2008,
+                    reason: "Film ini sempurna untuk mood action kamu dengan cerita yang kompleks dan aksi yang memukau.",
+                    mood_match: "Sesuai dengan mood action karena memiliki scene aksi yang intens dan mendebarkan.",
+                    similarity: "Mirip dengan film superhero lain dalam hal tema keadilan dan pengorbanan."
+                },
+                {
+                    title: "Inception",
+                    year: 2010,
+                    reason: "Film sci-fi yang menggugah pikiran dengan plot twist yang mengejutkan.",
+                    mood_match: "Cocok untuk mood yang ingin tantangan intelektual.",
+                    similarity: "Memiliki kompleksitas cerita seperti film thriller psikologis lainnya."
+                }
+            ],
+            search: {
+                search_terms: ["action", "adventure"],
+                genres: ["Action", "Adventure"],
+                year: null,
+                mood: "seru",
+                type: "movie",
+                original_query: "cari film action seru"
+            },
+            review: "The Dark Knight adalah masterpiece yang mengubah landscape film superhero. Dengan penampilan ikonik dari Heath Ledger sebagai Joker, film ini berhasil menghadirkan kedalaman karakter yang jarang ditemukan dalam genre ini. Christopher Nolan berhasil menyajikan aksi yang spektakuler sekaligus eksplorasi moral tentang keadilan dan kekacauan. Sebuah film yang tidak hanya menghibur tetapi juga membuat penonton berpikir."
+        };
+
+        window.testRecommendation = async function() {
+            showLoading(true);
+            const mood = document.getElementById('mood').value;
+            const genres = document.getElementById('genres').value;
+            const recentlyWatched = document.getElementById('recentlyWatched').value;
+
+            setTimeout(() => {
+                const result = mockResponses.recommendation;
+                displayResult(`
+                    <h3>🎬 Rekomendasi Film untuk Kamu:</h3>
+                    ${result.map((rec, index) => `
+                        <div style="margin: 15px 0; padding: 15px; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                            <h4>${index + 1}. ${rec.title} (${rec.year})</h4>
+                            <p><strong>Alasan:</strong> ${rec.reason}</p>
+                            <p><strong>Mood Match:</strong> ${rec.mood_match}</p>
+                            <p><strong>Similarity:</strong> ${rec.similarity}</p>
+                        </div>
+                    `).join('')}
+                `);
+                showLoading(false);
+            }, 1500);
+        };
+
+        window.testNaturalSearch = async function() {
+            showLoading(true);
+            const query = prompt("Masukkan query pencarian (contoh: 'cari film action lucu tahun 2020'):");
+            
+            setTimeout(() => {
+                const result = mockResponses.search;
+                displayResult(`
+                    <h3>🔍 Hasil Natural Language Search:</h3>
+                    <p><strong>Query asli:</strong> "${result.original_query}"</p>
+                    <p><strong>Search terms:</strong> ${result.search_terms.join(', ')}</p>
+                    <p><strong>Genres detected:</strong> ${result.genres.join(', ')}</p>
+                    <p><strong>Mood:</strong> ${result.mood}</p>
+                    <p><strong>Type:</strong> ${result.type}</p>
+                `);
+                showLoading(false);
+            }, 1000);
+        };
+
+        window.testReviewGeneration = async function() {
+            showLoading(true);
+            const movieTitle = prompt("Masukkan judul film untuk generate review:");
+            
+            setTimeout(() => {
+                const result = mockResponses.review;
+                displayResult(`
+                    <h3>📝 Review AI untuk "${movieTitle}":</h3>
+                    <p style="font-style: italic; line-height: 1.6;">${result}</p>
+                `);
+                showLoading(false);
+            }, 1200);
+        };
+
+        function showLoading(show) {
+            const button = event.target;
+            if (show) {
+                button.innerHTML = '<span class="loading"></span>Loading...';
+                button.disabled = true;
+            } else {
+                button.innerHTML = button.textContent.replace(/.*Loading/, '').trim();
+                button.disabled = false;
+            }
+        }
+
+        function displayResult(content) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `<div class="result">${content}</div>`;
+            resultDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

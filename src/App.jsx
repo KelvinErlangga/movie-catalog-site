@@ -1,7 +1,10 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Detail from "./components/Detail";
+import GeminiChat from "./components/GeminiChat";
+import MoreRecommendations from "./pages/MoreRecommendations";
 import { ThemeProvider } from "./context/ThemeContext"; // Import ini
+import "./styles/globals.css"; // Import global styles
 
 const App = () => {
   return (
@@ -13,6 +16,8 @@ const App = () => {
             <Route path="/" element={<Home />} />
             <Route path="/detail/:id" element={<Detail />} />
             <Route path="/list/:type/detail/:id" element={<Detail />} />
+            <Route path="/ai-chat" element={<GeminiChat />} />
+            <Route path="/more-recommendations" element={<MoreRecommendations />} />
           </Routes>
         </Router>
       </div>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check Available Gemini Models</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: linear-gradient(45deg, #2196F3, #9C27B0);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-left: 4px solid #4CAF50;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .error {
+            border-left-color: #f44336;
+            background: #ffebee;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Check Available Gemini Models</h1>
+        <p>Testing different model names to find the correct one</p>
+
+        <button onclick="testModel('gemini-pro')">🧪 Test gemini-pro</button>
+        <button onclick="testModel('gemini-1.5-flash')">⚡ Test gemini-1.5-flash</button>
+        <button onclick="testModel('gemini-1.5-pro')">🚀 Test gemini-1.5-pro</button>
+        <button onclick="testModel('gemini-1.0-pro')">📊 Test gemini-1.0-pro</button>
+        <button onclick="testModel('gemini-flash')">💫 Test gemini-flash</button>
+        <button onclick="listModels()">📋 List All Models</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script type="module">
+        import { GoogleGenerativeAI } from 'https://cdn.skypack.dev/@google/generative-ai';
+
+        const API_KEY = 'AIzaSyA2uA_SCHckt_ojjvIBN33mIqz5lBEFTsI';
+        
+        window.testModel = async function(modelName) {
+            showLoading(true);
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                const genAI = new GoogleGenerativeAI(API_KEY);
+                console.log(`🔍 Testing model: ${modelName}`);
+                
+                const model = genAI.getGenerativeModel({ model: modelName });
+                console.log('✅ Model loaded successfully');
+                
+                const result = await model.generateContent("Hello, respond with 'Model working' please");
+                const response = await result.response;
+                const text = response.text();
+                
+                console.log('✅ Model response:', text);
+                
+                resultDiv.innerHTML = `
+                    <div class="result">
+✅ SUCCESS: Model "${modelName}" Works!
+
+Response: "${text}"
+
+Status: Connected and Working
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error(`❌ Model ${modelName} Error:`, error);
+                resultDiv.innerHTML = `
+                    <div class="result error">
+❌ ERROR: Model "${modelName}" Failed!
+
+Error: ${error.message}
+
+Status: Not Available
+                    </div>
+                `;
+            } finally {
+                showLoading(false);
+            }
+        };
+
+        window.listModels = async function() {
+            showLoading(true);
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                const genAI = new GoogleGenerativeAI(API_KEY);
+                
+                // Try to list models (if supported)
+                console.log('📋 Attempting to list available models...');
+                
+                resultDiv.innerHTML = `
+                    <div class="result">
+📋 Checking available models...
+
+API Version: v1beta
+Library: @google/generative-ai
+API Key: ${API_KEY.substring(0, 10)}...
+
+Common model names to try:
+- gemini-pro
+- gemini-1.5-flash  
+- gemini-1.5-pro
+- gemini-1.0-pro
+- gemini-flash
+- gemini-1.0-latest
+
+If none work, the library version might be incompatible.
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('❌ List models error:', error);
+                resultDiv.innerHTML = `<div class="result error">❌ Error: ${error.message}</div>`;
+            } finally {
+                showLoading(false);
+            }
+        };
+
+        function showLoading(show) {
+            const button = event.target;
+            if (show) {
+                button.innerHTML = '<span style="display:inline-block;width:20px;height:20px;border:3px solid #f3f3f3;border-top:3px solid #3498db;border-radius:50%;animation:spin 1s linear infinite;margin-right:10px;"></span>Testing...';
+                button.disabled = true;
+            } else {
+                button.innerHTML = button.textContent.replace(/.*Testing/, '').trim();
+                button.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
