@@ -44,7 +44,7 @@ const MoreRecommendations = () => {
 
   useEffect(() => {
     loadMoreRecommendations();
-  }, [loadMoreRecommendations]);
+  }, []); // Hapus loadMoreRecommendations dari dependency
 
   const loadFallbackRecommendations = useCallback(async () => {
     const { getFallbackRecommendations } = await import('../services/gemini-fallback');
