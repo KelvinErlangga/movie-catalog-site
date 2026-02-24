@@ -116,7 +116,7 @@ const GeminiChat = () => {
                   className={`inline-block p-3 rounded-lg max-w-xs ${
                     message.isUser
                       ? 'bg-blue-500 text-white'
-                      : 'bg-gray-200 text-gray-800'
+                      : 'bg-gray-800 text-white'
                   }`}
                 >
                   {message.isUser ? (
@@ -133,11 +133,11 @@ const GeminiChat = () => {
             
             {isLoading && (
               <div className="text-left">
-                <div className="inline-block bg-gray-200 text-gray-800 p-3 rounded-lg">
+                <div className="inline-block bg-gray-800 text-white p-3 rounded-lg">
                   <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                   </div>
                 </div>
               </div>
@@ -152,7 +152,7 @@ const GeminiChat = () => {
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Tanya tentang film atau minta rekomendasi..."
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 placeholder-gray-500"
             />
             <button
               onClick={handleSendMessage}

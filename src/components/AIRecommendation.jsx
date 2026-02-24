@@ -211,11 +211,20 @@ const AIRecommendation = ({ currentMovie }) => {
             }, 100);
           }}
           disabled={isLoading || !userPreferences.mood}
-          className={`w-full py-2 px-4 rounded-lg transition-all duration-300 flex items-center justify-center ${
-            isLoading || !userPreferences.mood
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-50'
-              : 'bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 hover:shadow-lg transform hover:scale-[1.02]'
-          }`}
+          style={{
+            width: '100%',
+            padding: '0.5rem 1rem',
+            borderRadius: '0.5rem',
+            transition: 'all 0.3s ease',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: isLoading || !userPreferences.mood ? '#D1D5DB' : 'linear-gradient(to right, #3B82F6, #A855F7)',
+            color: isLoading || !userPreferences.mood ? '#111827' : '#FFFFFF',
+            cursor: isLoading || !userPreferences.mood ? 'not-allowed' : 'pointer',
+            opacity: isLoading || !userPreferences.mood ? 0.7 : 1,
+            fontWeight: 'bold'
+          }}
         >
           {isLoading ? (
             <div className="flex items-center">
@@ -233,7 +242,7 @@ const AIRecommendation = ({ currentMovie }) => {
       {/* Recommendations */}
       {recommendations.length > 0 && (
         <div className="space-y-4">
-          <h4 className="font-semibold text-gray-800 dark:text-white flex items-center">
+          <h4 style={{color: '#FFFFFF', fontWeight: 'bold', marginBottom: '1rem'}}>
             <FaStar className="text-yellow-500 mr-2" />
             Rekomendasi untuk Kamu
           </h4>
@@ -242,7 +251,7 @@ const AIRecommendation = ({ currentMovie }) => {
             <div key={rec.uniqueKey || `${rec.title}-${index}`} className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow cursor-pointer group">
               <div onClick={() => handleMovieClick(rec)}>
                 <div className="flex justify-between items-start mb-2">
-                  <h5 className="font-bold text-gray-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                  <h5 style={{color: '#111827', fontWeight: 'bold', fontSize: '0.875rem'}}>
                     {rec.title} ({rec.year})
                   </h5>
                   <button
@@ -250,7 +259,14 @@ const AIRecommendation = ({ currentMovie }) => {
                       e.stopPropagation(); // Prevent movie click
                       handleGenerateReview(rec);
                     }}
-                    className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm px-2 py-1 rounded border border-blue-300 dark:border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900 transition-colors"
+                    style={{
+                      fontSize: '0.875rem',
+                      padding: '0.25rem 0.5rem',
+                      borderRadius: '0.25rem',
+                      border: '2px solid #1E3A8A',
+                      color: '#1E3A8A',
+                      fontWeight: 'bold'
+                    }}
                   >
                     📝 Review
                   </button>
@@ -258,19 +274,19 @@ const AIRecommendation = ({ currentMovie }) => {
               </div>
               
               <div onClick={() => handleMovieClick(rec)}>
-                <p className="text-gray-600 dark:text-gray-300 text-sm mb-2">
+                <p style={{color: '#111827', fontSize: '0.875rem', marginBottom: '0.5rem', fontWeight: 'bold'}}>
                   {rec.reason}
                 </p>
                 
                 {rec.mood_match && (
-                  <div className="flex items-center text-sm text-green-600 dark:text-green-400 mb-1">
+                  <div style={{color: '#14532D', fontSize: '0.875rem', marginBottom: '0.25rem', fontWeight: 'bold', display: 'flex', alignItems: 'center'}}>
                     <FaHeart className="mr-1" />
                     <span className="dark:text-green-400">{rec.mood_match}</span>
                   </div>
                 )}
                 
                 {rec.similarity && (
-                  <div className="flex items-center text-sm text-blue-600 dark:text-blue-400">
+                  <div style={{color: '#1E3A8A', fontSize: '0.875rem', fontWeight: 'bold', display: 'flex', alignItems: 'center'}}>
                     <FaClock className="mr-1" />
                     <span className="dark:text-blue-400">{rec.similarity}</span>
                   </div>
