@@ -42,6 +42,54 @@ const MoreRecommendations = () => {
     return getPosterUrl(rec.title, rec.year);
   };
 
+  const loadMoreRecommendations = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const userPreferences = {
+        mood,
+        genres,
+        recentlyWatched,
+        page,
+        count: recommendationsPerPage
+      };
+      
+      console.log('🎬 Loading more recommendations for mood:', mood, 'Page:', page);
+      
+      // Try API first
+      try {
+        const recs = await getMovieRecommendation(userPreferences);
+        console.log('📨 API Response:', recs);
+        
+        if (recs && recs.length > 0) {
+          if (page === 1) {
+            setRecommendations(recs);
+          } else {
+            // Filter out duplicates before adding new recommendations
+            setRecommendations(prev => {
+              const existingIds = new Set(prev.map(r => r.id || r.title));
+              const newRecs = recs.filter(rec => !existingIds.has(rec.id || rec.title));
+              return [...prev, ...newRecs];
+            });
+          }
+          setHasMore(true); // API returned results, so there might be more
+        } else {
+          // API returned empty, use fallback
+          await loadFallbackRecommendations();
+        }
+      } catch (apiError) {
+        console.log('🔄 API failed, using fallback:', apiError);
+        await loadFallbackRecommendations();
+      }
+    } catch (error) {
+      console.error('❌ Error loading recommendations:', error);
+      setError('Gagal memuat rekomendasi. Silakan coba lagi.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [mood, genres, recentlyWatched, page, recommendationsPerPage, loadFallbackRecommendations]);
+
   useEffect(() => {
     loadMoreRecommendations();
   }, []); // Hapus loadMoreRecommendations dari dependency
@@ -90,54 +138,6 @@ const MoreRecommendations = () => {
       });
     }
   }, [mood, page, recommendationsPerPage]);
-
-  const loadMoreRecommendations = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      const userPreferences = {
-        mood,
-        genres,
-        recentlyWatched,
-        page,
-        count: recommendationsPerPage
-      };
-      
-      console.log('🎬 Loading more recommendations for mood:', mood, 'Page:', page);
-      
-      // Try API first
-      try {
-        const recs = await getMovieRecommendation(userPreferences);
-        console.log('📨 API Response:', recs);
-        
-        if (recs && recs.length > 0) {
-          if (page === 1) {
-            setRecommendations(recs);
-          } else {
-            // Filter out duplicates before adding new recommendations
-            setRecommendations(prev => {
-              const existingIds = new Set(prev.map(r => r.id || r.title));
-              const newRecs = recs.filter(rec => !existingIds.has(rec.id || rec.title));
-              return [...prev, ...newRecs];
-            });
-          }
-          setHasMore(true); // API returned results, so there might be more
-        } else {
-          // API returned empty, use fallback
-          await loadFallbackRecommendations();
-        }
-      } catch (apiError) {
-        console.log('🔄 API failed, using fallback:', apiError);
-        await loadFallbackRecommendations();
-      }
-    } catch (error) {
-      console.error('❌ Error loading recommendations:', error);
-      setError('Gagal memuat rekomendasi. Silakan coba lagi.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [mood, genres, recentlyWatched, page, recommendationsPerPage, loadFallbackRecommendations]);
 
   const handleLoadMore = () => {
     setPage(prev => prev + 1);
