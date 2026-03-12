@@ -153,7 +153,7 @@ export default function NavBar({ onSearch, onGenreFilter, onYearFilter, onCountr
         ? 'bg-white/95 dark:bg-black/95 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800 shadow-lg' 
         : 'bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-transparent dark:border-gray-800/30'
     }`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-[92%] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className={`flex items-center justify-between transition-all duration-500 ${
           isScrolled ? 'h-16' : 'h-20'
         }`}>

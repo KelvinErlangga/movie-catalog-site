@@ -19,3 +19,10 @@
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
 }
+
+/* Mengatur skala ukuran seluruh UI menjadi 90% seperti efek zoom out browser */
+@media (min-width: 1024px) {
+  html {
+    font-size: 90%; 
+  }
+}

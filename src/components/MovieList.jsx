@@ -7,7 +7,6 @@ export default function MovieList({ movies, type }) {
   if (!movies || movies.length === 0) {
     return (
       <div className="text-center py-12">
-        {/* UBAH: Warna teks pesan kosong (Abu gelap di Light, Abu terang di Dark) */}
         <p className="text-gray-500 dark:text-gray-400">No movies found</p>
       </div>
     );
@@ -16,71 +15,57 @@ export default function MovieList({ movies, type }) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
       {movies.map((movie) => {
-        // Tentukan type: prioritaskan prop 'type', jika tidak ada gunakan 'movie'
         const listType = type || "movie";
 
         return (
           <Link
             to={`/list/${listType}/detail/${movie.id}`}
             key={movie.id}
-            className="group block no-underline"
+            // Kontainer utama: Dibuat lebih rounded, ada shadow yang glow saat di-hover, dan efek naik ke atas (-translate-y)
+            className="group block relative overflow-hidden rounded-2xl aspect-[2/3] bg-gray-900 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/20 md:hover:shadow-blue-500/30"
           >
-            {/* UBAH CARD CONTAINER:
-                1. bg-gray-800  -> bg-white dark:bg-gray-800 (Putih di Light, Abu gelap di Dark)
-                2. Tambah border -> border border-gray-200 dark:border-gray-700/50 (Supaya di mode terang card-nya kelihatan batasnya)
-                3. Shadow       -> shadow-sm hover:shadow-xl dark:hover:shadow-black/50
-            */}
-            <div className="relative overflow-hidden rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/50 transition-all duration-300 hover:scale-105 hover:shadow-xl dark:hover:shadow-black/50">
+            {/* Poster Film: Efek zoom perlahan saat di-hover */}
+            <img
+              src={movie.poster_path ? `${baseImgUrl}/${movie.poster_path}` : "/no_image_available.jpg"}
+              alt={movie.title}
+              className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+              loading="lazy"
+            />
+
+            {/* Gradient Overlay: 
+                - Normal: Cuma gelap di bawah agar teks terbaca.
+                - Hover: Gelapnya naik sedikit biar info extra kelihatan. */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-80 transition-opacity duration-500 group-hover:opacity-100" />
+
+            {/* Rating Badge (Top Right): Pakai efek Glassmorphism (blur) */}
+            {movie.vote_average > 0 && (
+              <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-md border border-white/10 text-white px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1 shadow-lg transition-transform duration-300 group-hover:scale-105">
+                <span className="text-yellow-400 text-sm">★</span> 
+                {movie.vote_average.toFixed(1)}
+              </div>
+            )}
+
+            {/* Konten Text (Bottom): Ada animasi slide-up (naik dari bawah) */}
+            <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-4 transition-transform duration-500 ease-out group-hover:translate-y-0">
               
-              {/* Movie Poster */}
-              <div className="aspect-[2/3] overflow-hidden">
-                <img
-                  src={movie.poster_path ? `${baseImgUrl}/${movie.poster_path}` : "/no_image_available.jpg"}
-                  alt={movie.title}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                  loading="lazy"
-                />
-              </div>
-
-              {/* Overlay Information */}
-              {/* Overlay tetap menggunakan text-white karena background-nya gradient hitam (tetap bagus di light/dark mode) */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <div className="absolute bottom-0 left-0 right-0 p-3">
-                  <h3 className="text-white font-semibold text-sm mb-1 line-clamp-2">
-                    {movie.title}
-                  </h3>
-                  <div className="flex items-center justify-between text-xs text-gray-300">
-                    <span>{movie.release_date?.split('-')[0] || 'N/A'}</span>
-                    <div className="flex items-center">
-                      <span className="text-yellow-500 mr-1">★</span>
-                      <span>{movie.vote_average?.toFixed(1) || 'N/A'}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Rating Badge (Tetap dark bg karena kontras tinggi di atas gambar) */}
-              {movie.vote_average && (
-                <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs font-semibold">
-                  ★ {movie.vote_average.toFixed(1)}
-                </div>
-              )}
-            </div>
-
-            {/* Movie Title (always visible) */}
-            <div className="mt-2">
-              {/* UBAH TEXT JUDUL:
-                  1. text-white -> text-gray-900 dark:text-white (Hitam di Light, Putih di Dark)
-                  2. Hover      -> group-hover:text-blue-600 dark:group-hover:text-blue-400
-              */}
-              <h3 className="text-gray-900 dark:text-white text-sm font-medium line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              <h3 className="text-white font-bold text-sm md:text-base leading-snug mb-1 line-clamp-2 drop-shadow-lg">
                 {movie.title}
               </h3>
               
-              {/* UBAH TEXT TAHUN: text-gray-400 -> text-gray-500 dark:text-gray-400 */}
-              <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">
-                {movie.release_date?.split('-')[0] || 'N/A'}
-              </p>
+              {/* Info Tambahan: Awalnya ngumpet (opacity-0), pas di-hover baru muncul perlahan */}
+              <div className="flex items-center justify-between mt-2 opacity-0 transition-opacity duration-500 delay-100 group-hover:opacity-100">
+                <span className="text-gray-300 text-xs font-medium bg-white/10 px-2 py-1 rounded backdrop-blur-sm">
+                  {movie.release_date?.split('-')[0] || 'N/A'}
+                </span>
+                
+                <span className="text-blue-400 text-xs font-bold flex items-center gap-1">
+                  Detail
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                  </svg>
+                </span>
+              </div>
+
             </div>
           </Link>
         );

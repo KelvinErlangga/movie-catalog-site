@@ -10,7 +10,7 @@ const Footer = () => {
   return (
     <footer className="w-full relative z-10 dark:bg-neutral-900 border-t border-gray-200 dark:border-gray-800 pt-16 pb-8 transition-colors duration-300">
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-[92%] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
           
           {/* KOLOM 1: BRAND & DESKRIPSI */}

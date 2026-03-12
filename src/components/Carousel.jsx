@@ -32,7 +32,7 @@ const MovieCarousel = ({ movies }) => {
   const backdropUrl = "https://image.tmdb.org/t/p/original";
 
   return (
-    <div className="relative w-full h-[55vh] md:h-[85vh] overflow-hidden bg-black group">
+    <div className="relative w-full h-[75vh] md:h-[85vh] overflow-hidden bg-black group">
       
       {/* Background Image */}
       <div className="absolute inset-0">
@@ -42,31 +42,27 @@ const MovieCarousel = ({ movies }) => {
           className="w-full h-full object-cover object-top transition-transform duration-1000 ease-in-out group-hover:scale-105"
         />
         
-        {/* --- PERBAIKAN GRADASI (THE FIX) --- */}
-        
-        {/* 1. LAYER PROTEKSI TEKS (Gelap di belakang tulisan) */}
-        {/* <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/20 to-transparent" /> */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/10 to-transparent" />
-        
-        {/* 2. LAYER BLENDING SMOOTH (Kunci agar tidak patah)
-               - Menggunakan h-1/2 (setengah layar) agar pudarnya pelan-pelan.
-               - Menambahkan transisi 'via' agar tidak mendadak putih/hitam.
-        */}
+        {/* GRADASI: Di HP dibikin lebih gelap (black/90) biar teks kebaca, di Desktop KEMBALI ke paten (black/60) */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 md:from-black/60 md:via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/40 md:from-black/80 md:via-black/10 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-gray-50 via-gray-50/20 to-transparent dark:from-black dark:via-black/20" />
       </div>
 
-      {/* Konten Text (Menggunakan Style Lama yang Proporsional) */}
-      <div className="relative h-full flex items-center">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full mt-16 md:mt-0">
+      {/* POSISI KONTEN: Di HP nempel bawah (items-end pb-16), di Desktop KEMBALI ke tengah (items-center pb-0) */}
+      <div className="relative h-full flex items-end pb-16 md:items-center md:pb-0">
+        
+        {/* CONTAINER: 100% PERSIS KODE DESKTOP PATEN (w-[92%]) */}
+        <div className="w-[92%] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 md:mt-0">
           <div className="max-w-3xl animate-in slide-in-from-left duration-700 fade-in">
             
             <Link to={`/detail/${currentMovie.id}`} className="no-underline block group/title">
-              <h1 className="text-3xl md:text-6xl font-extrabold text-white mb-4 leading-tight drop-shadow-lg group-hover/title:text-blue-400 transition-colors">
+              {/* TEKS JUDUL: Di HP text-4xl, di Desktop KEMBALI ke text-6xl */}
+              <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-4 leading-tight drop-shadow-lg group-hover/title:text-blue-400 transition-colors">
                 {currentMovie.title}
               </h1>
             </Link>
             
+            {/* CONTAINER INFO: 100% PERSIS KODE DESKTOP PATEN */}
             <div className="flex items-center space-x-4 text-gray-200 mb-6 font-medium text-sm md:text-lg drop-shadow-md">
               <span className="bg-white/10 px-2 py-1 rounded border border-white/20 backdrop-blur-sm">
                 {currentMovie.release_date?.split('-')[0]}
@@ -83,10 +79,11 @@ const MovieCarousel = ({ movies }) => {
               {currentMovie.overview || "Description not available for this movie."}
             </p>
 
-            <div className="flex space-x-4">
+            {/* TOMBOL: Di HP ditumpuk (flex-col), di Desktop KEMBALI ke flex row dan space-x-4 */}
+            <div className="flex flex-col md:flex-row gap-3 md:gap-0 md:space-x-4">
               <Link 
                 to={`/detail/${currentMovie.id}`}
-                className="inline-flex items-center px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-blue-600/40 no-underline"
+                className="inline-flex justify-center items-center px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-blue-600/40 no-underline"
               >
                 <span>Watch Trailer</span>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="ml-2 w-5 h-5">
@@ -96,7 +93,7 @@ const MovieCarousel = ({ movies }) => {
               
               <Link 
                 to={`/detail/${currentMovie.id}`}
-                className="inline-flex items-center px-8 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white font-semibold rounded-xl transition-all duration-300 border border-white/20 hover:border-white/40 no-underline"
+                className="inline-flex justify-center items-center px-8 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white font-semibold rounded-xl transition-all duration-300 border border-white/20 hover:border-white/40 no-underline"
               >
                 More Details
               </Link>
@@ -105,7 +102,7 @@ const MovieCarousel = ({ movies }) => {
         </div>
       </div>
 
-      {/* Tombol Navigasi */}
+      {/* TOMBOL NAVIGASI: Tetap disembunyikan di HP, KEMBALI muncul di Desktop */}
       <button
         onClick={goToPrevious}
         className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-black/30 hover:bg-blue-600 text-white/70 hover:text-white rounded-full transition-all backdrop-blur-sm border border-white/10 group-hover:bg-black/50 z-20"
@@ -126,20 +123,22 @@ const MovieCarousel = ({ movies }) => {
         </svg>
       </button>
 
-      {/* Indikator */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-2 z-20">
-        {movies.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => setCurrentIndex(index)}
-            className={`h-1.5 rounded-full transition-all duration-300 ${
-              index === currentIndex 
-                ? 'bg-blue-500 w-8 shadow-[0_0_10px_rgba(59,130,246,0.5)]' 
-                : 'bg-white/30 w-2 hover:bg-white/50'
-            }`}
-            aria-label={`Go to slide ${index + 1}`}
-          />
-        ))}
+      {/* INDIKATOR: Dibatasi 10 titik agar tidak kepanjangan nyodok ke tombol di HP */}
+      <div className="absolute bottom-6 left-0 right-0 px-4 md:left-1/2 md:-translate-x-1/2 md:px-0 flex justify-center z-20">
+        <div className="flex space-x-2">
+          {movies.slice(0, 10).map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentIndex(index)}
+              className={`h-1.5 rounded-full transition-all duration-300 ${
+                index === currentIndex 
+                  ? 'bg-blue-500 w-8 shadow-[0_0_10px_rgba(59,130,246,0.5)]' 
+                  : 'bg-white/30 w-2 hover:bg-white/50'
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -371,7 +371,7 @@ const Home = () => {
       
       <div className="relative">
         {(currentView === 'search' || (currentView === 'filter' && (activeGenre || activeYear || activeCountry))) ? (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-screen">
+          <div className="w-[92%] max-w-7xl mx-auto py-8 min-h-screen">
             <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
               <h2 className="text-2xl font-bold">
                 {currentView === 'search' ? t('home.search_results') : getFilterTitle()}
@@ -432,7 +432,7 @@ const Home = () => {
             <section ref={nowPlayingRef}>
               <MovieCarousel movies={nowPlayingMovies} baseImgUrl={baseImgUrl} />
             </section>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="w-[92%] max-w-7xl mx-auto">
               <section className="py-12" id="now_playing">
                 <div className="flex items-center justify-between mb-8">
                   <h2 className="text-2xl md:text-3xl font-bold">{t('home.now_playing')}</h2>
