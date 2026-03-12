@@ -15,62 +15,81 @@ export default function MovieList({ movies, type }) {
     let animationFrameId;
     let exactScroll = container.scrollLeft;
     let lastTimestamp = null;
+    let isInteracting = false; // Penanda kalau kamu lagi nge-scroll manual
 
-    // KECEPATAN KONSISTEN (Pixel per Detik)
-    // Angka 15 ini ideal banget buat slow motion. Kalau masih kurang pelan, jadikan 10.
     const pixelsPerSecond = 15; 
 
     const autoScroll = (timestamp) => {
-      // HENTIKAN auto-scroll jika ini di layar Desktop (lebar >= 768px / md)
       if (window.innerWidth >= 768) {
         cancelAnimationFrame(animationFrameId);
         return;
       }
 
-      // Hitung selisih waktu (Delta Time) biar kecepatan stabil di semua HP
       if (!lastTimestamp) lastTimestamp = timestamp;
       const deltaTime = timestamp - lastTimestamp;
       lastTimestamp = timestamp;
 
-      if (container.scrollLeft >= (container.scrollWidth - container.clientWidth - 1)) {
-        exactScroll = 0; 
-        container.scrollLeft = 0;
+      // Cuma jalan otomatis KALAU user lagi nggak nyentuh / scroll
+      if (!isInteracting) {
+        if (container.scrollLeft >= (container.scrollWidth - container.clientWidth - 1)) {
+          exactScroll = 0; 
+          container.scrollLeft = 0;
+        } else {
+          exactScroll += (pixelsPerSecond * deltaTime) / 1000; 
+          container.scrollLeft = exactScroll; 
+        }
       } else {
-        // Rumus: Kecepatan x Waktu
-        exactScroll += (pixelsPerSecond * deltaTime) / 1000; 
-        container.scrollLeft = exactScroll; 
+        // Kalau user lagi geser manual, sinkronkan angka posisinya biar nggak mental
+        exactScroll = container.scrollLeft;
       }
+      
       animationFrameId = requestAnimationFrame(autoScroll);
     };
 
     const startScroll = () => {
       if (window.innerWidth < 768) {
         exactScroll = container.scrollLeft; 
-        lastTimestamp = null; // Reset waktu biar gak loncat pas abis disentuh
+        lastTimestamp = null;
         animationFrameId = requestAnimationFrame(autoScroll);
       }
     };
-    
-    const stopScroll = () => {
-      cancelAnimationFrame(animationFrameId);
-      lastTimestamp = null; // Reset waktu
+
+    let timeoutId;
+    // Fungsi ini dipanggil tiap kali jari nyentuh atau scroll layar
+    const handleInteraction = () => {
+      isInteracting = true;
+      clearTimeout(timeoutId);
+      // Kasih waktu 2 detik buat momentum scroll berhenti baru jalanin otomatis lagi
+      timeoutId = setTimeout(() => {
+        isInteracting = false;
+        lastTimestamp = null;
+      }, 2000);
     };
 
     startScroll();
 
-    container.addEventListener('mouseenter', stopScroll);
-    container.addEventListener('mouseleave', startScroll);
-    container.addEventListener('touchstart', stopScroll, { passive: true });
-    container.addEventListener('touchend', startScroll);
+    // Deteksi segala macam sentuhan dan scroll
+    container.addEventListener('touchstart', handleInteraction, { passive: true });
+    container.addEventListener('touchmove', handleInteraction, { passive: true });
+    container.addEventListener('scroll', handleInteraction, { passive: true });
+    
+    // Untuk interaksi pakai mouse (kalau iseng ngetes di inspect desktop)
+    container.addEventListener('mouseenter', () => { isInteracting = true; });
+    container.addEventListener('mouseleave', () => { 
+      isInteracting = false; 
+      lastTimestamp = null; 
+    });
     
     window.addEventListener('resize', startScroll);
 
     return () => {
       cancelAnimationFrame(animationFrameId);
-      container.removeEventListener('mouseenter', stopScroll);
-      container.removeEventListener('mouseleave', startScroll);
-      container.removeEventListener('touchstart', stopScroll);
-      container.removeEventListener('touchend', startScroll);
+      clearTimeout(timeoutId);
+      container.removeEventListener('touchstart', handleInteraction);
+      container.removeEventListener('touchmove', handleInteraction);
+      container.removeEventListener('scroll', handleInteraction);
+      container.removeEventListener('mouseenter', () => { isInteracting = true; });
+      container.removeEventListener('mouseleave', () => { isInteracting = false; });
       window.removeEventListener('resize', startScroll);
     };
   }, [type, movies]);
