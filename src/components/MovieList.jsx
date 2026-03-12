@@ -13,41 +13,47 @@ export default function MovieList({ movies, type }) {
     if (!container) return;
 
     let animationFrameId;
-    
-    // NAH! Sekarang angka sekecil apapun (0.2, 0.15) bakal jalan mulus
-    const scrollSpeed = 0.2; 
-    
-    // Variabel bantuan untuk nyimpen angka pecahan (desimal)
-    let exactScroll = container.scrollLeft; 
+    let exactScroll = container.scrollLeft;
+    let lastTimestamp = null;
 
-    const autoScroll = () => {
+    // KECEPATAN KONSISTEN (Pixel per Detik)
+    // Angka 15 ini ideal banget buat slow motion. Kalau masih kurang pelan, jadikan 10.
+    const pixelsPerSecond = 15; 
+
+    const autoScroll = (timestamp) => {
       // HENTIKAN auto-scroll jika ini di layar Desktop (lebar >= 768px / md)
       if (window.innerWidth >= 768) {
         cancelAnimationFrame(animationFrameId);
         return;
       }
 
+      // Hitung selisih waktu (Delta Time) biar kecepatan stabil di semua HP
+      if (!lastTimestamp) lastTimestamp = timestamp;
+      const deltaTime = timestamp - lastTimestamp;
+      lastTimestamp = timestamp;
+
       if (container.scrollLeft >= (container.scrollWidth - container.clientWidth - 1)) {
-        exactScroll = 0; // Reset ke 0
+        exactScroll = 0; 
         container.scrollLeft = 0;
       } else {
-        exactScroll += scrollSpeed; // Tambahin angka desimal ke variabel bantuan
-        container.scrollLeft = exactScroll; // Baru terapin ke browser
+        // Rumus: Kecepatan x Waktu
+        exactScroll += (pixelsPerSecond * deltaTime) / 1000; 
+        container.scrollLeft = exactScroll; 
       }
       animationFrameId = requestAnimationFrame(autoScroll);
     };
 
     const startScroll = () => {
-      // Cuma mulai animasi kalo di layar HP
       if (window.innerWidth < 768) {
-        // Sinkronisasi posisi biar gak loncat kalau abis di-swipe manual pakai jari
         exactScroll = container.scrollLeft; 
+        lastTimestamp = null; // Reset waktu biar gak loncat pas abis disentuh
         animationFrameId = requestAnimationFrame(autoScroll);
       }
     };
     
     const stopScroll = () => {
       cancelAnimationFrame(animationFrameId);
+      lastTimestamp = null; // Reset waktu
     };
 
     startScroll();
