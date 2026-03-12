@@ -102,23 +102,23 @@ const MovieCarousel = ({ movies }) => {
         </div>
       </div>
 
-      {/* TOMBOL NAVIGASI: Tetap disembunyikan di HP, KEMBALI muncul di Desktop */}
+      {/* TOMBOL NAVIGASI: Digeser ke atas (top-[35%]) khusus HP biar gak nimpa teks */}
       <button
         onClick={goToPrevious}
-        className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-black/30 hover:bg-blue-600 text-white/70 hover:text-white rounded-full transition-all backdrop-blur-sm border border-white/10 group-hover:bg-black/50 z-20"
+        className="flex absolute left-2 md:left-4 top-[40%] md:top-1/2 -translate-y-1/2 p-2 md:p-3 bg-black/40 hover:bg-blue-600 text-white/70 hover:text-white rounded-full transition-all backdrop-blur-sm border border-white/10 group-hover:bg-black/50 z-20"
         aria-label="Previous slide"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="h-6 w-6">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="h-4 w-4 md:h-6 md:w-6">
           <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
         </svg>
       </button>
 
       <button
         onClick={goToNext}
-        className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-black/30 hover:bg-blue-600 text-white/70 hover:text-white rounded-full transition-all backdrop-blur-sm border border-white/10 group-hover:bg-black/50 z-20"
+        className="flex absolute right-2 md:right-4 top-[40%] md:top-1/2 -translate-y-1/2 p-2 md:p-3 bg-black/40 hover:bg-blue-600 text-white/70 hover:text-white rounded-full transition-all backdrop-blur-sm border border-white/10 group-hover:bg-black/50 z-20"
         aria-label="Next slide"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="h-6 w-6">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="h-4 w-4 md:h-6 md:w-6">
           <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
         </svg>
       </button>
